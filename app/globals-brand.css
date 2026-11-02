@@ -1,0 +1,22 @@
+/* Paste into src/app/globals.css AFTER `npx shadcn@latest init`:
+   1) replace the values in your existing :root { } with these
+   2) add `--color-gold: var(--gold);` inside your existing @theme inline { }  */
+:root {
+  --radius: 0.75rem;
+  --background: #f4f7f9;
+  --foreground: #233746;
+  --card: #ffffff;
+  --card-foreground: #233746;
+  --primary: #12334a;
+  --primary-foreground: #ffffff;
+  --secondary: #17658d;
+  --secondary-foreground: #ffffff;
+  --accent: #15766d;
+  --accent-foreground: #ffffff;
+  --muted: #edf5f8;
+  --muted-foreground: #647582;
+  --border: #dce5ea;
+  --input: #dce5ea;
+  --ring: #17658d;
+  --gold: #c69a36;
+}
