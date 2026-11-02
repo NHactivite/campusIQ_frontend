@@ -27,6 +27,7 @@ export type ChatMessage = {
   text: string;
   sources?: Source[];
   pending?: boolean;
+  ts?: number;
 };
 
 export type ThreadInfo = { id: string; title: string; updatedAt: number };

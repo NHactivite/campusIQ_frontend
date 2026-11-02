@@ -1,10 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { io, type Socket } from "socket.io-client";
-import { FileText, MessageSquare, Plus, Send } from "lucide-react";
+import {
+  Bot,
+  Check,
+  Copy,
+  FileText,
+  GraduationCap,
+  Menu,
+  MessageSquare,
+  Plus,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react";
 import {
   CHAT_URL,
   EVENTS,
@@ -19,6 +31,8 @@ const T = {
   en: {
     title: "CampusIQ Assistant",
     subtitle: "Ask about regulations, exams, scholarships, admissions and notices.",
+    online: "Online",
+    connectingShort: "Connecting…",
     placeholder: "Type your question…",
     send: "Send",
     newChat: "New chat",
@@ -26,18 +40,29 @@ const T = {
     page: "page",
     history: "Your chats",
     noChats: "No chats yet",
+    welcome: "How can I help you today?",
+    welcomeSub: "Ask in English or Assamese. Answers come from official university documents.",
     tryAsking: "Try asking",
     signIn: "Please sign in to use the assistant.",
     signInBtn: "Sign in",
     connecting: "Connecting to the assistant…",
     searching: "Searching university documents…",
+    thinking: "Typing",
     failed: "Could not reach the assistant. Please try again.",
     privacy: "Conversations are saved and may be reviewed by administrators to improve answers.",
     deleteChat: "Delete chat",
+    copy: "Copy",
+    copied: "Copied",
+    today: "Today",
+    yesterday: "Yesterday",
+    earlier: "Earlier",
+    close: "Close",
   },
   as: {
     title: "CampusIQ সহায়ক",
     subtitle: "নিয়ম, পৰীক্ষা, বৃত্তি, নামভৰ্তি আৰু বিজ্ঞপ্তিৰ বিষয়ে সোধক।",
+    online: "অনলাইন",
+    connectingShort: "সংযোগ হৈ আছে…",
     placeholder: "আপোনাৰ প্ৰশ্ন লিখক…",
     send: "পঠিয়াওক",
     newChat: "নতুন কথোপকথন",
@@ -45,23 +70,34 @@ const T = {
     page: "পৃষ্ঠা",
     history: "আপোনাৰ কথোপকথন",
     noChats: "এতিয়াও কোনো কথোপকথন নাই",
+    welcome: "আজি মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?",
+    welcomeSub: "অসমীয়া বা ইংৰাজীত সোধক। উত্তৰ বিশ্ববিদ্যালয়ৰ official নথিপত্ৰৰ পৰা আহে।",
     tryAsking: "এনে প্ৰশ্ন সুধি চাওক",
     signIn: "সহায়ক ব্যৱহাৰ কৰিবলৈ অনুগ্ৰহ কৰি ছাইন ইন কৰক।",
     signInBtn: "ছাইন ইন",
     connecting: "সহায়কৰ সৈতে সংযোগ কৰি আছে…",
     searching: "বিশ্ববিদ্যালয়ৰ নথিপত্ৰ বিচাৰি আছে…",
+    thinking: "লিখি আছে",
     failed: "সহায়কৰ সৈতে সংযোগ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
     privacy: "কথোপকথনসমূহ সংৰক্ষিত হয় আৰু উত্তৰ উন্নত কৰিবলৈ প্ৰশাসকে পৰ্যালোচনা কৰিব পাৰে।",
     deleteChat: "কথোপকথন মচক",
+    copy: "কপি",
+    copied: "কপি হ’ল",
+    today: "আজি",
+    yesterday: "কালি",
+    earlier: "আগৰ",
+    close: "বন্ধ",
   },
 } as const;
 
 const EXAMPLES = {
   en: [
+    "What subjects are in MCA 1st semester?",
     "What is the last date to complete the personal profile for ID cards?",
     "Where is the cheque distribution programme held?",
   ],
   as: [
+    "MCA প্ৰথম ছেমেষ্টাৰত কি কি বিষয় আছে?",
     "আইডি কাৰ্ডৰ বাবে ব্যক্তিগত প্ৰফাইল সম্পূৰ্ণ কৰাৰ শেষ তাৰিখ কেতিয়া?",
     "চেক বিতৰণ কাৰ্যসূচী ক'ত অনুষ্ঠিত হ'ব?",
   ],
@@ -79,6 +115,96 @@ const uid = () =>
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
+const clock = (ts?: number) =>
+  ts ? new Date(ts).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "";
+
+// "**bold**" inside one line -> <strong>
+function Inline({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+        part.startsWith("**") && part.endsWith("**") && part.length > 4 ? (
+          <strong key={i} className="font-semibold">
+            {part.slice(2, -2)}
+          </strong>
+        ) : (
+          <Fragment key={i}>{part}</Fragment>
+        ),
+      )}
+    </>
+  );
+}
+
+// tiny, safe markdown: paragraphs, bullet lists and **bold** (no HTML injection)
+function RichText({ text }: { text: string }) {
+  const blocks: ({ type: "p"; text: string } | { type: "ul"; items: string[] })[] = [];
+  for (const line of text.split("\n")) {
+    const bullet = line.match(/^\s*[*\-•]\s+(.*)$/);
+    if (bullet) {
+      const last = blocks[blocks.length - 1];
+      if (last?.type === "ul") last.items.push(bullet[1]);
+      else blocks.push({ type: "ul", items: [bullet[1]] });
+    } else if (line.trim() === "") {
+      continue;
+    } else {
+      blocks.push({ type: "p", text: line });
+    }
+  }
+  return (
+    <div className="space-y-2">
+      {blocks.map((b, i) =>
+        b.type === "ul" ? (
+          <ul key={i} className="space-y-1 pl-1">
+            {b.items.map((it, j) => (
+              <li key={j} className="flex gap-2">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                <span>
+                  <Inline text={it} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p key={i}>
+            <Inline text={b.text} />
+          </p>
+        ),
+      )}
+    </div>
+  );
+}
+
+function groupThreads(list: ThreadInfo[], labels: { today: string; yesterday: string; earlier: string }) {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const today = start.getTime();
+  const yesterday = today - 86_400_000;
+  const groups: { label: string; items: ThreadInfo[] }[] = [
+    { label: labels.today, items: [] },
+    { label: labels.yesterday, items: [] },
+    { label: labels.earlier, items: [] },
+  ];
+  for (const th of list) {
+    const g = th.updatedAt >= today ? 0 : th.updatedAt >= yesterday ? 1 : 2;
+    groups[g].items.push(th);
+  }
+  return groups.filter((g) => g.items.length > 0);
+}
+
+function TypingDots() {
+  return (
+    <span className="inline-flex items-center gap-1" aria-hidden>
+      {[0, 150, 300].map((d) => (
+        <span
+          key={d}
+          className="h-2 w-2 animate-bounce rounded-full bg-slate-400"
+          style={{ animationDelay: `${d}ms` }}
+        />
+      ))}
+    </span>
+  );
+}
+
 /* ---------------- component ---------------- */
 export default function ChatClient() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
@@ -93,12 +219,15 @@ export default function ChatClient() {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
+  const [drawer, setDrawer] = useState(false); // mobile chat list
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [threadId, setThreadId] = useState<string>(() => uid());
   const [threads, setThreads] = useState<ThreadInfo[]>([]);
 
   const socketRef = useRef<Socket | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null); // the scrolling message list
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef(threadId); // latest thread id, readable inside socket handlers
   const busyRef = useRef(false); // true while an answer is streaming
   const initRef = useRef(false); // true once the first chat list has arrived
@@ -109,6 +238,14 @@ export default function ChatClient() {
   useEffect(() => {
     busyRef.current = busy;
   }, [busy]);
+
+  // the box grows with the text, up to a limit
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+  }, [input]);
 
   // update the answer that is currently being written
   const patchPending = useCallback((fn: (m: ChatMessage) => ChatMessage) => {
@@ -167,17 +304,14 @@ export default function ChatClient() {
     socket.on(EVENTS.tool, () => setSearching(true));
 
     socket.on(EVENTS.token, (p: unknown) => {
-      const piece =
-        typeof p === "string" ? p : ((p as { text?: string })?.text ?? "");
+      const piece = typeof p === "string" ? p : ((p as { text?: string })?.text ?? "");
       if (!piece) return;
       setSearching(false);
       patchPending((m) => ({ ...m, text: m.text + piece }));
     });
 
     socket.on(EVENTS.sources, (p: unknown) => {
-      const items: Source[] = Array.isArray(p)
-        ? p
-        : ((p as { items?: Source[] })?.items ?? []);
+      const items: Source[] = Array.isArray(p) ? p : ((p as { items?: Source[] })?.items ?? []);
       patchPending((m) => ({ ...m, sources: items }));
     });
 
@@ -234,9 +368,12 @@ export default function ChatClient() {
     setMessages([]);
     setBusy(false);
     setError(null);
+    setDrawer(false);
+    inputRef.current?.focus();
   };
 
   const openThread = (id: string) => {
+    setDrawer(false);
     if (id === threadId) return;
     threadRef.current = id;
     setThreadId(id);
@@ -247,6 +384,7 @@ export default function ChatClient() {
 
   const deleteThread = (id: string) => {
     socketRef.current?.emit(EVENTS.deleteThread, { threadId: id });
+    setThreads((prev) => prev.filter((x) => x.id !== id));
     if (id === threadId) newChat();
   };
 
@@ -269,10 +407,11 @@ export default function ChatClient() {
     const socket = socketRef.current;
     if (!text || busy || !socket?.connected) return;
 
+    const now = Date.now();
     setMessages((prev) => [
       ...prev,
-      { id: uid(), role: "user", text },
-      { id: uid(), role: "ai", text: "", pending: true },
+      { id: uid(), role: "user", text, ts: now },
+      { id: uid(), role: "ai", text: "", pending: true, ts: now },
     ]);
     setInput("");
     setBusy(true);
@@ -282,13 +421,26 @@ export default function ChatClient() {
     socket.emit(EVENTS.send, { message: text, threadId, language: lang });
   };
 
+  const copy = async (m: ChatMessage) => {
+    try {
+      await navigator.clipboard.writeText(m.text);
+      setCopiedId(m.id);
+      setTimeout(() => setCopiedId(null), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
   /* ---------------- render ---------------- */
   if (isLoaded && !isSignedIn) {
     return (
       <div className="mx-auto grid min-h-[60vh] max-w-md place-items-center px-4 text-center">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">{T.en.title}</h1>
-          <p className="mt-3 text-foreground/70">{T.en.signIn}</p>
+        <div className="rounded-3xl border border-primary/10 bg-white p-8 shadow-xl">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-[#0b1e36] to-[#1d6387] text-white">
+            <Bot className="h-7 w-7" />
+          </span>
+          <h1 className="mt-4 text-2xl font-bold text-primary">{T.en.title}</h1>
+          <p className="mt-2 text-sm text-foreground/70">{T.en.signIn}</p>
           <Link
             href="/sign-in"
             className="mt-6 inline-flex h-11 items-center rounded-full bg-primary px-8 text-sm font-semibold text-white hover:bg-primary/90"
@@ -300,174 +452,308 @@ export default function ChatClient() {
     );
   }
 
-  return (
-    <div className="mx-auto flex h-[78vh] w-full max-w-6xl gap-4 px-3 py-4 sm:px-4">
-      {/* chat list */}
-      <aside className="hidden w-64 shrink-0 flex-col rounded-2xl border border-primary/15 bg-white p-3 md:flex">
+  const groups = groupThreads(threads, t);
+
+  // the chat list, shared by the desktop sidebar and the mobile drawer
+  const sidebar = (
+    <>
+      <div className="p-3">
         <button
           onClick={newChat}
-          className="flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary/90"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
           {t.newChat}
         </button>
-        <p className="mt-4 px-1 text-xs font-medium uppercase tracking-wider text-foreground/50">
-          {t.history}
-        </p>
-        <div className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto">
-          {threads.length === 0 && (
-            <p className="px-1 py-2 text-sm text-foreground/40">{t.noChats}</p>
-          )}
-          {threads.map((th) => (
-            <button
-              key={th.id}
-              onClick={() => openThread(th.id)}
-              className={`group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors hover:bg-primary/5 ${
-                th.id === threadId ? "bg-primary/10 font-medium text-primary" : "text-foreground/70"
-              }`}
-            >
-              <MessageSquare className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{th.title}</span>
-              <span
-                role="button"
-                title={t.deleteChat}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteThread(th.id);
-                }}
-                className="ml-auto shrink-0 rounded px-1 text-foreground/30 hover:text-red-500"
-              >
-                ✕
-              </span>
-            </button>
-          ))}
-        </div>
-      </aside>
+      </div>
 
-      {/* conversation */}
-      <section className="flex min-w-0 flex-1 flex-col rounded-2xl border border-primary/15 bg-white">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/10 px-4 py-3">
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-bold text-primary">{t.title}</h1>
-            <p className="truncate text-xs text-foreground/60">{t.subtitle}</p>
+      <p className="px-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-foreground/45">
+        {t.history}
+      </p>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+        {threads.length === 0 && <p className="px-2 py-3 text-sm text-foreground/40">{t.noChats}</p>}
+        {groups.map((g) => (
+          <div key={g.label} className="mb-2">
+            <p className="px-2 pb-1 pt-2 text-[10px] font-medium uppercase tracking-wider text-foreground/35">
+              {g.label}
+            </p>
+            {g.items.map((th) => {
+              const active = th.id === threadId;
+              return (
+                <div
+                  key={th.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openThread(th.id)}
+                  onKeyDown={(e) => e.key === "Enter" && openThread(th.id)}
+                  className={`group flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-sm transition-colors ${
+                    active ? "bg-primary/10 text-primary" : "text-foreground/70 hover:bg-primary/5"
+                  }`}
+                >
+                  <span
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
+                      active ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </span>
+                  <span className={`min-w-0 flex-1 truncate ${active ? "font-semibold" : ""}`}>{th.title}</span>
+                  <button
+                    type="button"
+                    title={t.deleteChat}
+                    aria-label={t.deleteChat}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteThread(th.id);
+                    }}
+                    className="shrink-0 rounded-md p-1 text-foreground/30 opacity-0 transition hover:bg-red-50 hover:text-red-500 focus:opacity-100 group-hover:opacity-100 max-md:opacity-100"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
-          <div className="flex items-center gap-2">
+        ))}
+      </div>
+    </>
+  );
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-2 py-3 sm:px-4 sm:py-4">
+      <div className="relative flex h-[calc(100dvh-8rem)] min-h-130 overflow-hidden rounded-3xl border border-primary/10 bg-white shadow-xl shadow-slate-300/30">
+        {/* desktop sidebar */}
+        <aside className="hidden w-72 shrink-0 flex-col border-r border-primary/10 bg-[#fafbfc] md:flex">
+          {sidebar}
+        </aside>
+
+        {/* mobile drawer */}
+        {drawer && (
+          <div className="absolute inset-0 z-30 md:hidden">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
+            <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col bg-[#fafbfc] shadow-2xl">
+              <button
+                onClick={() => setDrawer(false)}
+                aria-label={t.close}
+                className="absolute right-2 top-2 rounded-lg p-1.5 text-foreground/50 hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              {sidebar}
+            </aside>
+          </div>
+        )}
+
+        {/* conversation */}
+        <section className="flex min-w-0 flex-1 flex-col">
+          {/* header */}
+          <header className="flex items-center gap-3 border-b border-primary/10 bg-white px-3 py-3 sm:px-4">
             <button
-              onClick={newChat}
-              className="rounded-lg border border-primary/20 px-2.5 py-1.5 text-xs text-primary md:hidden"
+              onClick={() => setDrawer(true)}
+              aria-label={t.history}
+              className="rounded-lg p-2 text-primary hover:bg-primary/5 md:hidden"
             >
-              {t.newChat}
+              <Menu className="h-5 w-5" />
             </button>
-            <div className="flex overflow-hidden rounded-lg border border-primary/20 text-xs">
+
+            <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-linear-to-br from-[#0b1e36] via-[#0d2b40] to-[#1d6387] text-white shadow-sm">
+              <GraduationCap className="h-5 w-5" />
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
+                  connected ? "bg-emerald-500" : "animate-pulse bg-amber-400"
+                }`}
+              />
+            </span>
+
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-base font-bold leading-tight text-primary">{t.title}</h1>
+              <p className="truncate text-xs text-foreground/55">
+                {connected ? t.online : t.connectingShort}
+                <span className="hidden sm:inline"> · {t.subtitle}</span>
+              </p>
+            </div>
+
+            <div className="flex shrink-0 overflow-hidden rounded-full border border-primary/15 bg-slate-50 p-0.5 text-xs">
               {LANGS.map((l) => (
                 <button
                   key={l.value}
                   onClick={() => setLang(l.value)}
-                  className={`px-2.5 py-1.5 transition-colors ${
-                    lang === l.value ? "bg-primary text-white" : "text-primary hover:bg-primary/5"
+                  className={`rounded-full px-2.5 py-1.5 font-medium transition-colors ${
+                    lang === l.value ? "bg-primary text-white shadow-sm" : "text-primary hover:bg-primary/5"
                   }`}
                 >
                   {l.label}
                 </button>
               ))}
             </div>
-          </div>
-        </header>
+          </header>
 
-        <div ref={listRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
-          {messages.length === 0 && (
-            <div className="mx-auto max-w-md pt-8 text-center">
-              <p className="text-sm font-medium text-foreground/60">{t.tryAsking}</p>
-              <div className="mt-3 space-y-2">
-                {examples.map((q) => (
-                  <button
-                    key={q}
-                    onClick={() => send(q)}
-                    disabled={!connected}
-                    className="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm text-primary transition-colors hover:bg-primary/5 disabled:opacity-50"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* messages */}
+          <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto bg-linear-to-b from-[#f1f5f9] to-[#e8eef4] px-3 py-5 sm:px-6">
+            <div className="mx-auto max-w-3xl space-y-4">
+              {messages.length === 0 && (
+                <div className="flex flex-col items-center pt-6 text-center sm:pt-12">
+                  <span className="grid h-16 w-16 place-items-center rounded-2xl bg-linear-to-br from-[#0b1e36] via-[#0d2b40] to-[#1d6387] text-white shadow-lg">
+                    <GraduationCap className="h-8 w-8" />
+                  </span>
+                  <h2 className="mt-4 text-xl font-bold text-primary sm:text-2xl">{t.welcome}</h2>
+                  <p className="mt-1.5 max-w-md text-sm text-foreground/60">{t.welcomeSub}</p>
 
-          {messages.map((m) => (
-            <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                  m.role === "user" ? "bg-primary text-white" : "bg-[#f4f7f9] text-foreground"
-                }`}
-              >
-                {m.pending && !m.text ? (
-                  <span className="text-foreground/50">{searching ? t.searching : "…"}</span>
-                ) : (
-                  <p className="whitespace-pre-wrap">{m.text}</p>
-                )}
+                  <p className="mt-8 text-xs font-semibold uppercase tracking-wider text-foreground/45">
+                    {t.tryAsking}
+                  </p>
+                  <div className="mt-3 grid w-full max-w-xl gap-2">
+                    {examples.map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => send(q)}
+                        disabled={!connected}
+                        className="flex items-center gap-3 rounded-2xl border border-primary/10 bg-white px-4 py-3 text-left text-sm text-primary shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0"
+                      >
+                        <MessageSquare className="h-4 w-4 shrink-0 text-gold" />
+                        <span>{q}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                {m.role === "ai" && m.sources && m.sources.length > 0 && (
-                  <div className="mt-3 border-t border-primary/10 pt-2">
-                    <p className="text-[11px] font-medium uppercase tracking-wider text-foreground/50">
-                      {t.sources}
-                    </p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {m.sources.map((s, i) => {
-                        const label = `${s.source}${s.page ? ` · ${t.page} ${s.page}` : ""}`;
-                        const chip =
-                          "inline-flex max-w-full items-center gap-1 rounded-md bg-white px-2 py-1 text-xs text-primary ring-1 ring-primary/15";
-                        return s.url ? (
-                          <a key={i} href={s.url} target="_blank" rel="noreferrer" className={`${chip} hover:ring-gold`}>
-                            <FileText className="h-3 w-3 shrink-0" />
-                            <span className="truncate">{label}</span>
-                          </a>
-                        ) : (
-                          <span key={i} className={chip}>
-                            <FileText className="h-3 w-3 shrink-0" />
-                            <span className="truncate">{label}</span>
+              {messages.map((m) => {
+                const mine = m.role === "user";
+                return (
+                  <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                    {!mine && (
+                      <span className="mb-5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-linear-to-br from-[#0b1e36] to-[#1d6387] text-white shadow-sm">
+                        <Bot className="h-4 w-4" />
+                      </span>
+                    )}
+
+                    <div className={`flex max-w-[88%] flex-col sm:max-w-[78%] ${mine ? "items-end" : "items-start"}`}>
+                      <div
+                        className={`px-4 py-2.5 text-[14.5px] leading-relaxed shadow-sm ${
+                          mine
+                            ? "rounded-2xl rounded-br-md bg-primary text-white"
+                            : "rounded-2xl rounded-bl-md border border-slate-200/80 bg-white text-foreground"
+                        }`}
+                      >
+                        {m.pending && !m.text ? (
+                          <span className="flex items-center gap-2.5 py-0.5 text-sm text-foreground/55">
+                            <TypingDots />
+                            <span>{searching ? t.searching : t.thinking}</span>
                           </span>
-                        );
-                      })}
+                        ) : mine ? (
+                          <p className="whitespace-pre-wrap">{m.text}</p>
+                        ) : (
+                          <RichText text={m.text} />
+                        )}
+
+                        {!mine && m.sources && m.sources.length > 0 && (
+                          <div className="mt-3 border-t border-slate-100 pt-2.5">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/45">
+                              {t.sources}
+                            </p>
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              {m.sources.map((s, i) => {
+                                const label = s.source;
+                                const pageNo = s.page ? `${t.page} ${s.page}` : "";
+                                const chip =
+                                  "group inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-primary transition-colors";
+                                const body = (
+                                  <>
+                                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                                      <FileText className="h-3.5 w-3.5" />
+                                    </span>
+                                    <span className="min-w-0">
+                                      <span className="block truncate font-medium">{label}</span>
+                                      {pageNo && <span className="block text-[10px] text-foreground/45">{pageNo}</span>}
+                                    </span>
+                                  </>
+                                );
+                                return s.url ? (
+                                  <a
+                                    key={i}
+                                    href={s.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className={`${chip} hover:border-gold hover:bg-amber-50`}
+                                  >
+                                    {body}
+                                  </a>
+                                ) : (
+                                  <span key={i} className={chip}>
+                                    {body}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* time + copy */}
+                      {!(m.pending && !m.text) && (
+                        <div className="mt-1 flex items-center gap-2 px-1 text-[10px] text-foreground/40">
+                          {clock(m.ts) && <span>{clock(m.ts)}</span>}
+                          {!mine && m.text && !m.pending && (
+                            <button
+                              onClick={() => copy(m)}
+                              className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 hover:bg-white hover:text-primary"
+                            >
+                              {copiedId === m.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                              {copiedId === m.id ? t.copied : t.copy}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
-              </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
-
-        {error && <p className="px-4 pb-1 text-xs text-red-600">{t.failed}</p>}
-        {!connected && !error && isLoaded && (
-          <p className="px-4 pb-1 text-xs text-foreground/50">{t.connecting}</p>
-        )}
-
-        <div className="border-t border-primary/10 p-3">
-          <div className="flex items-end gap-2">
-            <textarea
-              rows={1}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send();
-                }
-              }}
-              placeholder={t.placeholder}
-              className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-primary/20 px-3 py-2.5 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20"
-            />
-            <button
-              onClick={() => send()}
-              disabled={busy || !connected || !input.trim()}
-              className="flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-40"
-            >
-              <Send className="h-4 w-4" />
-              <span className="hidden sm:inline">{t.send}</span>
-            </button>
           </div>
-          <p className="mt-2 text-[11px] text-foreground/40">{t.privacy}</p>
-        </div>
-      </section>
+
+          {/* status */}
+          {error && (
+            <p className="border-t border-red-100 bg-red-50 px-4 py-1.5 text-xs text-red-600">{t.failed}</p>
+          )}
+          {!connected && !error && isLoaded && (
+            <p className="border-t border-amber-100 bg-amber-50 px-4 py-1.5 text-xs text-amber-700">
+              {t.connecting}
+            </p>
+          )}
+
+          {/* composer */}
+          <div className="border-t border-primary/10 bg-white px-3 pb-3 pt-3 sm:px-5">
+            <div className="mx-auto flex max-w-3xl items-end gap-2 rounded-3xl border border-primary/15 bg-slate-50 py-1.5 pl-4 pr-1.5 transition focus-within:border-gold focus-within:bg-white focus-within:ring-2 focus-within:ring-gold/20">
+              <textarea
+                ref={inputRef}
+                rows={1}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    send();
+                  }
+                }}
+                placeholder={t.placeholder}
+                className="max-h-32 min-h-9 flex-1 resize-none bg-transparent py-2 text-sm outline-none placeholder:text-foreground/40"
+              />
+              <button
+                onClick={() => send()}
+                disabled={busy || !connected || !input.trim()}
+                aria-label={t.send}
+                title={t.send}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-white shadow-sm transition-all hover:bg-primary/90 disabled:bg-slate-300 disabled:shadow-none"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mx-auto mt-2 max-w-3xl text-center text-[11px] text-foreground/40">{t.privacy}</p>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
