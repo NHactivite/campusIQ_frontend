@@ -14,7 +14,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "RDC & IIC | Sibsagar University",
+  title: "campusIQ | Sibsagar University",
   description:
     "Research Development Cell and Institution's Innovation Council, Sibsagar University",
 };
