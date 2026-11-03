@@ -57,8 +57,8 @@ export default async function Home() {
       <section className="overflow-hidden bg-linear-to-br from-white via-[#f4f7f9] to-[#e3eef4]">
         <div className="mx-auto grid w-full items-center gap-10 px-2 py-5 lg:grid-cols-2 lg:py-3">
           <div>
-            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-primary lg:text-7xl">
-              Research. Innovate. <span className="text-gold">Incubate.</span>
+            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-primary lg:text-6xl">
+             Welcome to <p className="text-gold">Sibsagar University</p>
             </h1>
 
             <p className="mt-6 max-w-xl text-md sm:text-lg text-foreground/80">
@@ -91,9 +91,9 @@ export default async function Home() {
       {/* FROM RESEARCH TO IMPACT */}
       <Section id="incubation">
         <h2 className="mb-2 flex flex-wrap items-center gap-x-3 text-3xl font-bold tracking-tight lg:text-4xl">
-          <span className="text-5xl text-[#0d1c2f]">From research</span>
+          <span className="text-5xl text-[#0d1c2f]">Academic & </span>
           <span className="bg-linear-to-r from-amber-600 via-amber-500 to-amber-600 bg-clip-text font-serif text-4xl font-normal italic text-transparent">
-            to impact
+            Research Excellence
           </span>
         </h2>
         <PathwayStepper />

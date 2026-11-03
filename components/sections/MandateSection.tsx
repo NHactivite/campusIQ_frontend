@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { Compass, Rocket, FlaskConical, Download, ArrowRight } from "lucide-react";
+import {
+  Compass,
+  Rocket,
+  FlaskConical,
+  Download,
+  ArrowRight,
+} from "lucide-react";
 
 // TODO: set this to the approved charter PDF (e.g. a Cloudinary link). The "Download Charter" button stays hidden until it is set.
 const CHARTER_URL = "";
@@ -15,13 +21,13 @@ const tones = {
     card: "border-[#c4c6ce] bg-white hover:border-sky-400 hover:shadow-slate-200/60",
   },
   darkSky: {
-  label: "text-slate-700",
-  icon: "border-sky-300 bg-sky-200/70 text-sky-700 group-hover:bg-sky-200",
-  title: "group-hover:text-sky-700",
-  tag: "border-sky-300 bg-sky-100/70 text-sky-900 hover:border-sky-500",
-  corner: "bg-sky-200/30 group-hover:bg-sky-300/30",
-  card: "border-sky-300 bg-sky-50/70 hover:border-sky-500 hover:shadow-sky-100/80",
-},
+    label: "text-slate-700",
+    icon: "border-sky-300 bg-sky-200/70 text-sky-700 group-hover:bg-sky-200",
+    title: "group-hover:text-sky-700",
+    tag: "border-sky-300 bg-sky-100/70 text-sky-900 hover:border-sky-500",
+    corner: "bg-sky-200/30 group-hover:bg-sky-300/30",
+    card: "border-sky-300 bg-sky-50/70 hover:border-sky-500 hover:shadow-sky-100/80",
+  },
   indigo: {
     label: "text-indigo-700",
     icon: "border-indigo-200 bg-indigo-100 text-indigo-700 group-hover:bg-indigo-200/80",
@@ -73,22 +79,30 @@ export default function MandateSection() {
       id="vision"
       className="relative scroll-mt-4 overflow-hidden  px-4 py-5 text-[#0d1c2f] selection:bg-amber-500/30 selection:text-amber-900 sm:px-6 lg:px-8 lg:py-8"
     >
-
       <div className="relative mx-auto ">
         {/* header */}
         <header className="mb-8 max-w-3xl mt-10 lg:mb-8">
-           <h2 className="text-4xl leading-[1.12] font-extrabold tracking-tight text-[#0d1c2f] sm:text-5xl lg:text-6xl">
+          <h2 className="text-4xl leading-[1.12] font-extrabold tracking-tight text-[#0d1c2f] sm:text-5xl lg:text-5xl">
             Why{" "}
-            <span className="bg-linear-to-r from-blue-600 via-sky-500 to-indigo-500 bg-clip-text text-transparent">RDC</span>{" "}
-            &amp;{" "}
-            <span className="bg-linear-to-r from-amber-600 via-amber-500 to-orange-500 bg-clip-text text-transparent">IIC</span>{" "}
-            Exist
+            <span className="bg-linear-to-r from-blue-600 via-sky-500 to-indigo-500 bg-clip-text text-transparent">
+              Sibsagar
+            </span>{" "}
+            University{" "}
+            <span className="bg-linear-to-r from-amber-600 via-amber-500 to-orange-500 bg-clip-text text-transparent">
+              Matters
+            </span>
           </h2>
 
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-[#44474d] sm:text-xl">
             One university ecosystem, two engines:{" "}
-            <span className="font-semibold text-[#0d1c2f]">research capacity</span> and{" "}
-            <span className="font-semibold text-[#0d1c2f]">innovation culture</span>.
+            <span className="font-semibold text-[#0d1c2f]">
+              research capacity
+            </span>{" "}
+            and{" "}
+            <span className="font-semibold text-[#0d1c2f]">
+              innovation culture
+            </span>
+            .
           </p>
 
           <div className="flex items-center mt-2 gap-3">
@@ -107,14 +121,20 @@ export default function MandateSection() {
               <article
                 key={p.title}
                 className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl  p-7 shadow-md transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl lg:p-8 ${t.card} ${
-                  p.title === "Core Approach" ? "md:col-span-2 lg:col-span-1" : ""
+                  p.title === "Core Approach"
+                    ? "md:col-span-2 lg:col-span-1"
+                    : ""
                 }`}
               >
                 {/* corner accent */}
                 <div className="relative">
                   <div className="flex items-center justify-between gap-4">
                     <div className="inline-flex flex-wrap items-center gap-1.5">
-                      <span className={`font-mono text-[11px] font-bold tracking-widest uppercase ${t.label}`}>{p.label}</span>
+                      <span
+                        className={`font-mono text-[11px] font-bold tracking-widest uppercase ${t.label}`}
+                      >
+                        {p.label}
+                      </span>
                       {"featured" in p && p.featured && (
                         <span className="rounded border border-amber-300 bg-amber-200/80 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-amber-900 uppercase">
                           Core Hub
@@ -127,15 +147,26 @@ export default function MandateSection() {
                       <Icon className="h-5 w-5" strokeWidth={1.8} />
                     </div>
                   </div>
-                  <h3 className={`mb-4 text-2xl font-bold tracking-tight text-[#0d1c2f] transition-colors ${t.title}`}>{p.title}</h3>
-                  <p className="text-sm leading-relaxed text-slate-600 sm:text-base">{p.text}</p>
+                  <h3
+                    className={`mb-4 text-2xl font-bold tracking-tight text-[#0d1c2f] transition-colors ${t.title}`}
+                  >
+                    {p.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
+                    {p.text}
+                  </p>
                 </div>
 
                 <div className="relative  border-t border-slate-100 pt-6">
-                  <p className="mb-2.5 text-[11px] font-semibold tracking-wider text-slate-500 uppercase">Key Thrust Areas</p>
+                  <p className="mb-2.5 text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
+                    Key Thrust Areas
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {p.tags.map((tag) => (
-                      <span key={tag} className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${t.tag}`}>
+                      <span
+                        key={tag}
+                        className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${t.tag}`}
+                      >
                         {tag}
                       </span>
                     ))}

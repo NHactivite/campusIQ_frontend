@@ -15,6 +15,8 @@ export const EVENTS = {
   listThreads: "list_threads",   // frontend -> backend
   threads: "threads",            // backend -> frontend: [{ id, title, updatedAt }]
   deleteThread: "delete_thread",
+  speak: "speak",    // frontend -> backend: { id, text, language }
+  speech: "speech",  // backend -> frontend: { id, audio (base64 mp3) } or { id, error }
 } as const;
 
 export type Lang = "auto" | "en" | "as";

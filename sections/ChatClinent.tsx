@@ -4,17 +4,21 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { io, type Socket } from "socket.io-client";
+
 import {
   Bot,
   Check,
   Copy,
   FileText,
   GraduationCap,
+  Loader2,
   Menu,
   MessageSquare,
   Plus,
   Send,
+  Square,
   Trash2,
+  Volume2,
   X,
 } from "lucide-react";
 import {
@@ -30,7 +34,8 @@ import {
 const T = {
   en: {
     title: "CampusIQ Assistant",
-    subtitle: "Ask about regulations, exams, scholarships, admissions and notices.",
+    subtitle:
+      "Ask about regulations, exams, scholarships, admissions and notices.",
     online: "Online",
     connectingShort: "Connecting…",
     placeholder: "Type your question…",
@@ -41,7 +46,8 @@ const T = {
     history: "Your chats",
     noChats: "No chats yet",
     welcome: "How can I help you today?",
-    welcomeSub: "Ask in English or Assamese. Answers come from official university documents.",
+    welcomeSub:
+      "Ask in English or Assamese. Answers come from official university documents.",
     tryAsking: "Try asking",
     signIn: "Please sign in to use the assistant.",
     signInBtn: "Sign in",
@@ -49,7 +55,8 @@ const T = {
     searching: "Searching university documents…",
     thinking: "Typing",
     failed: "Could not reach the assistant. Please try again.",
-    privacy: "Conversations are saved and may be reviewed by administrators to improve answers.",
+    privacy:
+      "Conversations are saved and may be reviewed by administrators to improve answers.",
     deleteChat: "Delete chat",
     copy: "Copy",
     copied: "Copied",
@@ -57,6 +64,9 @@ const T = {
     yesterday: "Yesterday",
     earlier: "Earlier",
     close: "Close",
+    listen: "Listen",
+    stop: "Stop",
+    speechFailed: "Voice is unavailable right now.",
   },
   as: {
     title: "CampusIQ সহায়ক",
@@ -71,7 +81,8 @@ const T = {
     history: "আপোনাৰ কথোপকথন",
     noChats: "এতিয়াও কোনো কথোপকথন নাই",
     welcome: "আজি মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?",
-    welcomeSub: "অসমীয়া বা ইংৰাজীত সোধক। উত্তৰ বিশ্ববিদ্যালয়ৰ official নথিপত্ৰৰ পৰা আহে।",
+    welcomeSub:
+      "অসমীয়া বা ইংৰাজীত সোধক। উত্তৰ বিশ্ববিদ্যালয়ৰ official নথিপত্ৰৰ পৰা আহে।",
     tryAsking: "এনে প্ৰশ্ন সুধি চাওক",
     signIn: "সহায়ক ব্যৱহাৰ কৰিবলৈ অনুগ্ৰহ কৰি ছাইন ইন কৰক।",
     signInBtn: "ছাইন ইন",
@@ -79,7 +90,8 @@ const T = {
     searching: "বিশ্ববিদ্যালয়ৰ নথিপত্ৰ বিচাৰি আছে…",
     thinking: "লিখি আছে",
     failed: "সহায়কৰ সৈতে সংযোগ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
-    privacy: "কথোপকথনসমূহ সংৰক্ষিত হয় আৰু উত্তৰ উন্নত কৰিবলৈ প্ৰশাসকে পৰ্যালোচনা কৰিব পাৰে।",
+    privacy:
+      "কথোপকথনসমূহ সংৰক্ষিত হয় আৰু উত্তৰ উন্নত কৰিবলৈ প্ৰশাসকে পৰ্যালোচনা কৰিব পাৰে।",
     deleteChat: "কথোপকথন মচক",
     copy: "কপি",
     copied: "কপি হ’ল",
@@ -87,6 +99,9 @@ const T = {
     yesterday: "কালি",
     earlier: "আগৰ",
     close: "বন্ধ",
+    listen: "শুনক",
+    stop: "বন্ধ",
+    speechFailed: "এই মুহূৰ্তত কণ্ঠস্বৰ উপলব্ধ নহয়।",
   },
 } as const;
 
@@ -116,7 +131,12 @@ const uid = () =>
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 const clock = (ts?: number) =>
-  ts ? new Date(ts).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "";
+  ts
+    ? new Date(ts).toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
 
 // "**bold**" inside one line -> <strong>
 function Inline({ text }: { text: string }) {
@@ -137,7 +157,10 @@ function Inline({ text }: { text: string }) {
 
 // tiny, safe markdown: paragraphs, bullet lists and **bold** (no HTML injection)
 function RichText({ text }: { text: string }) {
-  const blocks: ({ type: "p"; text: string } | { type: "ul"; items: string[] })[] = [];
+  const blocks: (
+    | { type: "p"; text: string }
+    | { type: "ul"; items: string[] }
+  )[] = [];
   for (const line of text.split("\n")) {
     const bullet = line.match(/^\s*[*\-•]\s+(.*)$/);
     if (bullet) {
@@ -174,7 +197,10 @@ function RichText({ text }: { text: string }) {
   );
 }
 
-function groupThreads(list: ThreadInfo[], labels: { today: string; yesterday: string; earlier: string }) {
+function groupThreads(
+  list: ThreadInfo[],
+  labels: { today: string; yesterday: string; earlier: string },
+) {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const today = start.getTime();
@@ -224,6 +250,17 @@ export default function ChatClient() {
 
   const [threadId, setThreadId] = useState<string>(() => uid());
   const [threads, setThreads] = useState<ThreadInfo[]>([]);
+  const [playing, setPlaying] = useState<string | null>(null); // message id being spoken
+  const [loadingAudio, setLoadingAudio] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopAudio = useCallback(() => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setPlaying(null);
+    setLoadingAudio(null);
+  }, []);
+  useEffect(() => () => stopAudio(), [stopAudio]);
 
   const socketRef = useRef<Socket | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null); // the scrolling message list
@@ -304,14 +341,17 @@ export default function ChatClient() {
     socket.on(EVENTS.tool, () => setSearching(true));
 
     socket.on(EVENTS.token, (p: unknown) => {
-      const piece = typeof p === "string" ? p : ((p as { text?: string })?.text ?? "");
+      const piece =
+        typeof p === "string" ? p : ((p as { text?: string })?.text ?? "");
       if (!piece) return;
       setSearching(false);
       patchPending((m) => ({ ...m, text: m.text + piece }));
     });
 
     socket.on(EVENTS.sources, (p: unknown) => {
-      const items: Source[] = Array.isArray(p) ? p : ((p as { items?: Source[] })?.items ?? []);
+      const items: Source[] = Array.isArray(p)
+        ? p
+        : ((p as { items?: Source[] })?.items ?? []);
       patchPending((m) => ({ ...m, sources: items }));
     });
 
@@ -345,7 +385,24 @@ export default function ChatClient() {
         })),
       );
     });
-
+    socket.on(
+      EVENTS.speech,
+      (p: { id?: string; audio?: string; error?: boolean }) => {
+        setLoadingAudio(null);
+        if (!p?.audio || !p.id) {
+          setError("speech");
+          setTimeout(() => setError(null), 3000);
+          return;
+        }
+        audioRef.current?.pause();
+        const a = new Audio(`data:audio/mpeg;base64,${p.audio}`);
+        audioRef.current = a;
+        setPlaying(p.id);
+        a.onended = () => setPlaying(null);
+        a.onerror = () => setPlaying(null);
+        a.play().catch(() => setPlaying(null));
+      },
+    );
     return () => {
       socket.disconnect();
       socketRef.current = null;
@@ -430,6 +487,16 @@ export default function ChatClient() {
       /* clipboard unavailable */
     }
   };
+  const speak = (m: ChatMessage) => {
+    if (playing === m.id || loadingAudio === m.id) return stopAudio();
+    stopAudio();
+    setLoadingAudio(m.id);
+    socketRef.current?.emit(EVENTS.speak, {
+      id: m.id,
+      text: m.text,
+      language: lang,
+    });
+  };
 
   /* ---------------- render ---------------- */
   if (isLoaded && !isSignedIn) {
@@ -472,7 +539,9 @@ export default function ChatClient() {
       </p>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-        {threads.length === 0 && <p className="px-2 py-3 text-sm text-foreground/40">{t.noChats}</p>}
+        {threads.length === 0 && (
+          <p className="px-2 py-3 text-sm text-foreground/40">{t.noChats}</p>
+        )}
         {groups.map((g) => (
           <div key={g.label} className="mb-2">
             <p className="px-2 pb-1 pt-2 text-[10px] font-medium uppercase tracking-wider text-foreground/35">
@@ -488,17 +557,25 @@ export default function ChatClient() {
                   onClick={() => openThread(th.id)}
                   onKeyDown={(e) => e.key === "Enter" && openThread(th.id)}
                   className={`group flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-sm transition-colors ${
-                    active ? "bg-primary/10 text-primary" : "text-foreground/70 hover:bg-primary/5"
+                    active
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground/70 hover:bg-primary/5"
                   }`}
                 >
                   <span
                     className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
-                      active ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
+                      active
+                        ? "bg-primary text-white"
+                        : "bg-slate-100 text-slate-500"
                     }`}
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
                   </span>
-                  <span className={`min-w-0 flex-1 truncate ${active ? "font-semibold" : ""}`}>{th.title}</span>
+                  <span
+                    className={`min-w-0 flex-1 truncate ${active ? "font-semibold" : ""}`}
+                  >
+                    {th.title}
+                  </span>
                   <button
                     type="button"
                     title={t.deleteChat}
@@ -531,7 +608,10 @@ export default function ChatClient() {
         {/* mobile drawer */}
         {drawer && (
           <div className="absolute inset-0 z-30 md:hidden">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setDrawer(false)}
+            />
             <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col bg-[#fafbfc] shadow-2xl">
               <button
                 onClick={() => setDrawer(false)}
@@ -567,10 +647,12 @@ export default function ChatClient() {
             </span>
 
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-base font-bold leading-tight text-primary">{t.title}</h1>
+              <h1 className="truncate text-base font-bold leading-tight text-primary">
+                {t.title}
+              </h1>
               <p className="truncate text-xs text-foreground/55">
                 {connected ? t.online : t.connectingShort}
-                <span className="hidden sm:inline"> · {t.subtitle}</span>
+                <span className="hidden mt-1 sm:inline "> · {t.subtitle}</span>
               </p>
             </div>
 
@@ -580,7 +662,9 @@ export default function ChatClient() {
                   key={l.value}
                   onClick={() => setLang(l.value)}
                   className={`rounded-full px-2.5 py-1.5 font-medium transition-colors ${
-                    lang === l.value ? "bg-primary text-white shadow-sm" : "text-primary hover:bg-primary/5"
+                    lang === l.value
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-primary hover:bg-primary/5"
                   }`}
                 >
                   {l.label}
@@ -590,15 +674,22 @@ export default function ChatClient() {
           </header>
 
           {/* messages */}
-          <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto bg-linear-to-b from-[#f1f5f9] to-[#e8eef4] px-3 py-5 sm:px-6">
+          <div
+            ref={listRef}
+            className="min-h-0 flex-1 overflow-y-auto bg-linear-to-b from-[#f1f5f9] to-[#e8eef4] px-3 py-5 sm:px-6"
+          >
             <div className="mx-auto max-w-3xl space-y-4">
               {messages.length === 0 && (
                 <div className="flex flex-col items-center pt-6 text-center sm:pt-12">
                   <span className="grid h-16 w-16 place-items-center rounded-2xl bg-linear-to-br from-[#0b1e36] via-[#0d2b40] to-[#1d6387] text-white shadow-lg">
                     <GraduationCap className="h-8 w-8" />
                   </span>
-                  <h2 className="mt-4 text-xl font-bold text-primary sm:text-2xl">{t.welcome}</h2>
-                  <p className="mt-1.5 max-w-md text-sm text-foreground/60">{t.welcomeSub}</p>
+                  <h2 className="mt-4 text-xl font-bold text-primary sm:text-2xl">
+                    {t.welcome}
+                  </h2>
+                  <p className="mt-1.5 max-w-md text-sm text-foreground/60">
+                    {t.welcomeSub}
+                  </p>
 
                   <p className="mt-8 text-xs font-semibold uppercase tracking-wider text-foreground/45">
                     {t.tryAsking}
@@ -622,14 +713,19 @@ export default function ChatClient() {
               {messages.map((m) => {
                 const mine = m.role === "user";
                 return (
-                  <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                  <div
+                    key={m.id}
+                    className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}
+                  >
                     {!mine && (
                       <span className="mb-5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-linear-to-br from-[#0b1e36] to-[#1d6387] text-white shadow-sm">
                         <Bot className="h-4 w-4" />
                       </span>
                     )}
 
-                    <div className={`flex max-w-[88%] flex-col sm:max-w-[78%] ${mine ? "items-end" : "items-start"}`}>
+                    <div
+                      className={`flex max-w-[88%] flex-col sm:max-w-[78%] ${mine ? "items-end" : "items-start"}`}
+                    >
                       <div
                         className={`px-4 py-2.5 text-[14.5px] leading-relaxed shadow-sm ${
                           mine
@@ -656,7 +752,9 @@ export default function ChatClient() {
                             <div className="mt-1.5 flex flex-wrap gap-1.5">
                               {m.sources.map((s, i) => {
                                 const label = s.source;
-                                const pageNo = s.page ? `${t.page} ${s.page}` : "";
+                                const pageNo = s.page
+                                  ? `${t.page} ${s.page}`
+                                  : "";
                                 const chip =
                                   "group inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-primary transition-colors";
                                 const body = (
@@ -665,8 +763,14 @@ export default function ChatClient() {
                                       <FileText className="h-3.5 w-3.5" />
                                     </span>
                                     <span className="min-w-0">
-                                      <span className="block truncate font-medium">{label}</span>
-                                      {pageNo && <span className="block text-[10px] text-foreground/45">{pageNo}</span>}
+                                      <span className="block truncate font-medium">
+                                        {label}
+                                      </span>
+                                      {pageNo && (
+                                        <span className="block text-[10px] text-foreground/45">
+                                          {pageNo}
+                                        </span>
+                                      )}
                                     </span>
                                   </>
                                 );
@@ -690,6 +794,23 @@ export default function ChatClient() {
                           </div>
                         )}
                       </div>
+                      {!mine && m.text && !m.pending && (
+                        <button
+                          onClick={() => speak(m)}
+                          className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 hover:bg-white hover:text-primary"
+                        >
+                          {loadingAudio === m.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : playing === m.id ? (
+                            <Square className="h-3 w-3" />
+                          ) : (
+                            <Volume2 className="h-3 w-3" />
+                          )}
+                          {playing === m.id || loadingAudio === m.id
+                            ? t.stop
+                            : t.listen}
+                        </button>
+                      )}
 
                       {/* time + copy */}
                       {!(m.pending && !m.text) && (
@@ -700,7 +821,11 @@ export default function ChatClient() {
                               onClick={() => copy(m)}
                               className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 hover:bg-white hover:text-primary"
                             >
-                              {copiedId === m.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                              {copiedId === m.id ? (
+                                <Check className="h-3 w-3" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
                               {copiedId === m.id ? t.copied : t.copy}
                             </button>
                           )}
@@ -715,7 +840,9 @@ export default function ChatClient() {
 
           {/* status */}
           {error && (
-            <p className="border-t border-red-100 bg-red-50 px-4 py-1.5 text-xs text-red-600">{t.failed}</p>
+            <p className="border-t border-red-100 bg-red-50 px-4 py-1.5 text-xs text-red-600">
+              {error === "speech" ? t.speechFailed : t.failed}
+            </p>
           )}
           {!connected && !error && isLoaded && (
             <p className="border-t border-amber-100 bg-amber-50 px-4 py-1.5 text-xs text-amber-700">
@@ -732,7 +859,11 @@ export default function ChatClient() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  if (
+                    e.key === "Enter" &&
+                    !e.shiftKey &&
+                    !e.nativeEvent.isComposing
+                  ) {
                     e.preventDefault();
                     send();
                   }
@@ -750,7 +881,9 @@ export default function ChatClient() {
                 <Send className="h-4 w-4" />
               </button>
             </div>
-            <p className="mx-auto mt-2 max-w-3xl text-center text-[11px] text-foreground/40">{t.privacy}</p>
+            <p className="mx-auto mt-2 max-w-3xl text-center text-[11px] text-foreground/40">
+              {t.privacy}
+            </p>
           </div>
         </section>
       </div>

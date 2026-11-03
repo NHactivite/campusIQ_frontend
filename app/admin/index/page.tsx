@@ -26,6 +26,8 @@ const kindLabel: Record<IndexRow["kind"], string> = {
   feature: "Feature",
   glance: "At a glance",
   linkage: "Linkage",
+  facility: "Facility",
+  programme: "Programme",
 };
 
 const editLink: Record<IndexRow["kind"], string> = {
@@ -34,6 +36,8 @@ const editLink: Record<IndexRow["kind"], string> = {
   feature: "/admin/features",
   glance: "/admin/glance",
   linkage: "/admin/linkages",
+  facility: "/admin/facilities",
+  programme: "/admin/programmes",
 };
 
 const partIcon = {

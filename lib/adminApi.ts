@@ -142,10 +142,70 @@ export const adminUpdateNotice = async (id: string, data: FormData) =>
 
 export const adminDeleteNotice = (id: string) =>
   request(`/api/notices/${id}`, { method: "DELETE" }, "Failed to delete notice");
+
+// ─── Facilities (admin) ───────────────────────────────────────────────────────────────
+export type FacilityFile = { _id: string; url: string; originalName?: string; format?: string; bytes?: number; resourceType?: string; };
+export type FacilityItem = {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  category: string;
+  location?: string;
+  operatingHours?: string;
+  contactDetails?: string;
+  amenities: string[];
+  images: FacilityFile[];
+  documents: FacilityFile[];
+  isPublished: boolean;
+  createdAt?: string;
+};
+
+export const adminGetFacilities = async (): Promise<FacilityItem[]> =>
+  (await request("/api/facilities/admin/all", {}, "Failed to fetch facilities")).data;
+
+export const adminCreateFacility = async (data: FormData) =>
+  (await request("/api/facilities", { method: "POST", body: data }, "Failed to create facility")).data;
+
+export const adminUpdateFacility = async (id: string, data: FormData) =>
+  (await request(`/api/facilities/${id}`, { method: "PATCH", body: data }, "Failed to update facility")).data;
+
+export const adminDeleteFacility = (id: string) =>
+  request(`/api/facilities/${id}`, { method: "DELETE" }, "Failed to delete facility");
+
+// ─── Programmes (admin) ───────────────────────────────────────────────────────────────
+export type ProgrammeFile = { _id: string; url: string; originalName?: string; format?: string; bytes?: number; };
+export type ProgrammeItem = {
+  _id: string;
+  name: string;
+  slug: string;
+  degreeLevel: string;
+  department: string;
+  duration: string;
+  eligibilityCriteria?: string;
+  admissionRequirements?: string;
+  courseOverview?: string;
+  availableSeats?: number;
+  syllabus: ProgrammeFile[];
+  isPublished: boolean;
+  createdAt?: string;
+};
+
+export const adminGetProgrammes = async (): Promise<ProgrammeItem[]> =>
+  (await request("/api/programmes/admin/all", {}, "Failed to fetch programmes")).data;
+
+export const adminCreateProgramme = async (data: FormData) =>
+  (await request("/api/programmes", { method: "POST", body: data }, "Failed to create programme")).data;
+
+export const adminUpdateProgramme = async (id: string, data: FormData) =>
+  (await request(`/api/programmes/${id}`, { method: "PATCH", body: data }, "Failed to update programme")).data;
+
+export const adminDeleteProgramme = (id: string) =>
+  request(`/api/programmes/${id}`, { method: "DELETE" }, "Failed to delete programme");
 // ─── Index status (admin) ────────────────────────────────────────────────────
 export type IndexPart = { label: string; status: "ok" | "missing" | "skipped" | "no_text"; note?: string };
 export type IndexRow = {
-  kind: "event" | "notice" | "feature" | "glance" | "linkage";
+  kind: "event" | "notice" | "feature" | "glance" | "linkage" | "facility" | "programme";
   id: string;
   title: string;
   category?: string;

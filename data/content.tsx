@@ -9,6 +9,8 @@ export const nav = [
   { label: "Incubation Pathway", href: "/#incubation" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Linkages", href: "/#linkages" },
+  { label: "Facilities", href: "/facilities" },
+  { label: "Programmes", href: "/programmes" },
   { label: "Notices", href: "/notices" },
   { label: "Assistant", href: "/chat" },
 ];
