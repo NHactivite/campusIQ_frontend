@@ -65,10 +65,10 @@ export default function Header() {
             />
           </span>
           <span className="leading-tight">
-            <span className="block text-base font-extrabold tracking-tight text-[#0b1e36]">
+            {/* <span className="block text-base font-extrabold tracking-tight text-[#0b1e36]">
               RDC{" "}
               <span className="bg-linear-to-r from-amber-600 to-amber-500 bg-clip-text text-transparent">&amp; IIC</span>
-            </span>
+            </span> */}
             <span className="block font-mono text-[10px] font-semibold uppercase tracking-widest text-slate-500">
               Sibsagar University
             </span>
