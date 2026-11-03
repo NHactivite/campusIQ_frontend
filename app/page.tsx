@@ -17,9 +17,9 @@ export default async function Home() {
     getLinkages().catch(() => []),
 
     // first 24 events, for the homepage photos
-    getEvents("All", 1, 24).catch(() => ({
+    getEvents("All", 1, 5).catch(() => ({
       data: [],
-      pagination: { page: 1, limit: 24, total: 0, pages: 0 },
+      pagination: { page: 1, limit: 5, total: 0, pages: 0 },
     })),
 
     getGlance().catch(() => []),

@@ -28,7 +28,7 @@ export const fetchEvents = createAsyncThunk<
       const result = await getEvents(
         category,
         page,
-        24,
+        5,
       );
 
       return {
@@ -71,7 +71,7 @@ const initialState: EventsState = {
 
   pagination: {
     page: 1,
-    limit: 24,
+    limit: 5,
     total: 0,
     pages: 0,
   },

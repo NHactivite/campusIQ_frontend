@@ -49,7 +49,7 @@ export const API_URL =
 export async function getEvents(
   category = "All",
   page = 1,
-  limit = 24,
+  limit = 5,
 ): Promise<EventsResponse> {
   const q = new URLSearchParams({
     page: String(page),
