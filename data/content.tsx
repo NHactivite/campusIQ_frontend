@@ -3,16 +3,14 @@ import { Compass, Globe2, Rocket } from "lucide-react";
 
 export const nav = [
   { label: "Home", href: "/" },
-  { label: "Vision & Mission", href: "/#vision" },
-  { label: "RDC", href: "/#rdc-offerings" },
-  { label: "IIC", href: "/#iic-offerings" },
-  { label: "Incubation Pathway", href: "/#incubation" },
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Linkages", href: "/#linkages" },
+  { label: "Assistant", href: "/chat" },
   { label: "Facilities", href: "/facilities" },
   { label: "Programmes", href: "/programmes" },
   { label: "Notices", href: "/notices" },
-  { label: "Assistant", href: "/chat" },
+  { label: "Events", href: "/dashboard" },
+  { label: "Vision & Mission", href: "/#vision" },
+  { label: "Incubation Pathway", href: "/#incubation" },
+  { label: "Linkages", href: "/#linkages" },
 ];
 
 export const pathway = [
