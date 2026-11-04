@@ -153,7 +153,7 @@ export default async function FacilitiesPage({
   return (
     <div className="pb-20">
       {/* Header banner */}
-      <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-b border-amber-100">
+      <div className="bg-linear-to-br from-amber-50 to-orange-50 border-b border-amber-100">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3 mb-3">
             <div className="rounded-xl bg-amber-100 p-2.5">

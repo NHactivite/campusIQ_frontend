@@ -1,14 +1,30 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  Plus, Pencil, Trash2, Eye, EyeOff, Search,
-  Image as ImageIcon, ImagePlus, Video as VideoIcon, FileText, FileUp, X, Undo2,
+  Plus,
+  Pencil,
+  Trash2,
+  Eye,
+  EyeOff,
+  Search,
+  Image as ImageIcon,
+  ImagePlus,
+  Video as VideoIcon,
+  FileText,
+  FileUp,
+  X,
+  Undo2,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 import {
   adminGetEvents,
   adminCreateEvent,
   adminUpdateEvent,
   adminDeleteEvent,
+  adminGetIndexStatus,
+  adminResyncItem,
 } from "@/lib/adminApi";
 import Modal from "@/components/admin/Modal";
 import {
@@ -22,11 +38,25 @@ import {
 } from "@/components/admin/AdminUI";
 import type { EventItem, Media } from "@/lib/api";
 
-const CATEGORIES = ["RDC", "IIC", "Learning", "Incubation", "Linkages", "IPR", "Other"] as const;
+const CATEGORIES = [
+  "RDC",
+  "IIC",
+  "Learning",
+  "Incubation",
+  "Linkages",
+  "IPR",
+  "Other",
+] as const;
 const fmt = (d: string) =>
-  new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-const toDateInput = (d: string) => (d ? new Date(d).toISOString().split("T")[0] : "");
-const sizeLabel = (b: number) => (b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.round(b / 1e3)} KB`);
+  new Date(d).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+const toDateInput = (d: string) =>
+  d ? new Date(d).toISOString().split("T")[0] : "";
+const sizeLabel = (b: number) =>
+  b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.round(b / 1e3)} KB`;
 
 type Toast = { message: string; type: "success" | "error" } | null;
 
@@ -61,7 +91,16 @@ type Kind = "images" | "videos" | "documents";
 
 const KINDS: Record<
   Kind,
-  { title: string; button: string; label: string; max: number; maxMB: number; types: string[]; exts: string[]; icon: typeof ImagePlus }
+  {
+    title: string;
+    button: string;
+    label: string;
+    max: number;
+    maxMB: number;
+    types: string[];
+    exts: string[];
+    icon: typeof ImagePlus;
+  }
 > = {
   images: {
     title: "Photos",
@@ -132,18 +171,22 @@ function MediaPicker({
   // preview URLs only for photos and videos
   const urls = useMemo(
     () => (isDoc ? [] : files.map((f) => URL.createObjectURL(f))),
-    [files, isDoc]
+    [files, isDoc],
   );
   useEffect(() => () => urls.forEach((u) => URL.revokeObjectURL(u)), [urls]);
 
-  const thumb = "relative aspect-video overflow-hidden rounded-lg border border-white/10 bg-black";
+  const thumb =
+    "relative aspect-video overflow-hidden rounded-lg border border-white/10 bg-black";
   const iconBtn = "rounded-full bg-black/70 p-1 text-white hover:bg-black";
-  const row = "flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2";
+  const row =
+    "flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2";
 
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-medium uppercase tracking-wider text-white/50">{cfg.title}</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-white/50">
+          {cfg.title}
+        </p>
         <span className="text-[11px] text-white/30">
           {cfg.label} · max {cfg.max}, {cfg.maxMB} MB each
         </span>
@@ -176,34 +219,67 @@ function MediaPicker({
                   type="button"
                   onClick={() => onToggleExisting(m._id)}
                   title={removed ? "Keep this file" : "Remove this file"}
-                  className={isDoc ? "rounded-md p-1 text-white/50 hover:bg-white/10 hover:text-white" : `absolute right-1 top-1 ${iconBtn}`}
+                  className={
+                    isDoc
+                      ? "rounded-md p-1 text-white/50 hover:bg-white/10 hover:text-white"
+                      : `absolute right-1 top-1 ${iconBtn}`
+                  }
                 >
-                  {removed ? <Undo2 className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                  {removed ? (
+                    <Undo2 className="h-3 w-3" />
+                  ) : (
+                    <X className="h-3 w-3" />
+                  )}
                 </button>
               );
 
               if (isDoc)
                 return (
-                  <div key={m._id} className={`${row} ${removed ? "opacity-40" : ""}`}>
+                  <div
+                    key={m._id}
+                    className={`${row} ${removed ? "opacity-40" : ""}`}
+                  >
                     <FileText className="h-4 w-4 shrink-0 text-gold" />
-                    <a href={m.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-sm text-white/80 hover:text-gold">
+                    <a
+                      href={m.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="min-w-0 flex-1 truncate text-sm text-white/80 hover:text-gold"
+                    >
                       {m.originalName ?? "Document"}
                     </a>
                     <span className="shrink-0 text-[11px] text-white/30">
-                      {m.format?.toUpperCase()} {m.bytes ? `· ${sizeLabel(m.bytes)}` : ""}
+                      {m.format?.toUpperCase()}{" "}
+                      {m.bytes ? `· ${sizeLabel(m.bytes)}` : ""}
                     </span>
-                    {removed && <span className="shrink-0 text-[10px] text-red-400">Will be deleted</span>}
+                    {removed && (
+                      <span className="shrink-0 text-[10px] text-red-400">
+                        Will be deleted
+                      </span>
+                    )}
                     {toggle}
                   </div>
                 );
 
               return (
-                <div key={m._id} className={`${thumb} ${removed ? "opacity-30" : ""}`}>
+                <div
+                  key={m._id}
+                  className={`${thumb} ${removed ? "opacity-30" : ""}`}
+                >
                   {isImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={m.url} alt="" className="h-full w-full object-cover" />
+                    <img
+                      src={m.url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    <video src={m.url} muted preload="metadata" className="h-full w-full object-cover" />
+                    <video
+                      src={m.url}
+                      muted
+                      preload="metadata"
+                      className="h-full w-full object-cover"
+                    />
                   )}
                   {toggle}
                   {removed && (
@@ -227,8 +303,12 @@ function MediaPicker({
               isDoc ? (
                 <div key={`${f.name}-${i}`} className={row}>
                   <FileText className="h-4 w-4 shrink-0 text-gold" />
-                  <span className="min-w-0 flex-1 truncate text-sm text-white/80">{f.name}</span>
-                  <span className="shrink-0 text-[11px] text-white/30">{sizeLabel(f.size)}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm text-white/80">
+                    {f.name}
+                  </span>
+                  <span className="shrink-0 text-[11px] text-white/30">
+                    {sizeLabel(f.size)}
+                  </span>
                   <button
                     type="button"
                     onClick={() => onRemoveNew(kind, i)}
@@ -242,9 +322,18 @@ function MediaPicker({
                 <div key={`${f.name}-${i}`} className={thumb}>
                   {isImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={urls[i]} alt={f.name} className="h-full w-full object-cover" />
+                    <img
+                      src={urls[i]}
+                      alt={f.name}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    <video src={urls[i]} muted preload="metadata" className="h-full w-full object-cover" />
+                    <video
+                      src={urls[i]}
+                      muted
+                      preload="metadata"
+                      className="h-full w-full object-cover"
+                    />
                   )}
                   <button
                     type="button"
@@ -258,7 +347,7 @@ function MediaPicker({
                     {f.name} · {sizeLabel(f.size)}
                   </span>
                 </div>
-              )
+              ),
             )}
           </div>
         </div>
@@ -270,7 +359,11 @@ function MediaPicker({
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
-const noFiles = (): Record<Kind, File[]> => ({ images: [], videos: [], documents: [] });
+const noFiles = (): Record<Kind, File[]> => ({
+  images: [],
+  videos: [],
+  documents: [],
+});
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -288,6 +381,59 @@ export default function AdminEventsPage() {
   // media state: new files per kind, plus ids of existing files marked for deletion
   const [newFiles, setNewFiles] = useState<Record<Kind, File[]>>(noFiles());
   const [removedIds, setRemovedIds] = useState<string[]>([]);
+
+  type IdxInfo = { status: string; updatedAt?: string };
+  const [idx, setIdx] = useState<Record<string, IdxInfo>>({});
+  const [pending, setPending] = useState<Record<string, number>>({}); // event id -> time of last save
+
+  const refreshIndex = useCallback(async () => {
+    try {
+      const s = await adminGetIndexStatus();
+      const map: Record<string, IdxInfo> = {};
+      for (const r of s.items)
+        if (r.kind === "event")
+          map[r.id] = { status: r.status, updatedAt: r.updatedAt };
+      setIdx(map);
+    } catch {
+      /* chatbot unreachable: badges stay as they were */
+    }
+  }, []);
+
+  type Badge = "ready" | "processing" | "failed" | "draft" | "unknown";
+  const badgeOf = (e: EventItem): Badge => {
+    if ((e as any).isPublished === false) return "draft";
+    const r = idx[e._id];
+    if (!r) return "unknown";
+    // an edit is re-indexed from scratch, so give it a few seconds before trusting "indexed"
+    if (pending[e._id] && Date.now() - pending[e._id] < 10_000)
+      return "processing";
+    if (r.status === "indexed") return "ready";
+    const age = Date.now() - new Date(r.updatedAt ?? 0).getTime();
+    return age < 5 * 60_000 ? "processing" : "failed";
+  };
+
+  const anyProcessing = events.some((e) => badgeOf(e) === "processing");
+
+  useEffect(() => {
+    refreshIndex();
+  }, [events, refreshIndex]);
+
+  useEffect(() => {
+    // poll only while something is processing
+    if (!anyProcessing) return;
+    const t = setInterval(refreshIndex, 5000);
+    return () => clearInterval(t);
+  }, [anyProcessing, refreshIndex]);
+
+  const retry = async (e: EventItem) => {
+    try {
+      await adminResyncItem("event", e._id);
+      setPending((p) => ({ ...p, [e._id]: Date.now() }));
+      showToast("Re-sync queued", "success");
+    } catch (err: any) {
+      showToast(err.message ?? "Could not queue re-sync", "error");
+    }
+  };
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -353,7 +499,10 @@ export default function AdminEventsPage() {
 
     for (const f of Array.from(list)) {
       if (!cfg.types.includes(f.type)) {
-        showToast(`"${f.name}" is not a valid file. Use ${cfg.label}.`, "error");
+        showToast(
+          `"${f.name}" is not a valid file. Use ${cfg.label}.`,
+          "error",
+        );
         continue;
       }
       if (f.size > cfg.maxMB * 1024 * 1024) {
@@ -365,16 +514,24 @@ export default function AdminEventsPage() {
 
     const merged = [...newFiles[kind], ...accepted];
     if (merged.length > cfg.max) {
-      showToast(`You can upload at most ${cfg.max} ${cfg.title.toLowerCase()} at a time.`, "error");
+      showToast(
+        `You can upload at most ${cfg.max} ${cfg.title.toLowerCase()} at a time.`,
+        "error",
+      );
     }
     setNewFiles((prev) => ({ ...prev, [kind]: merged.slice(0, cfg.max) }));
   };
 
   const removeNew = (kind: Kind, index: number) =>
-    setNewFiles((prev) => ({ ...prev, [kind]: prev[kind].filter((_, i) => i !== index) }));
+    setNewFiles((prev) => ({
+      ...prev,
+      [kind]: prev[kind].filter((_, i) => i !== index),
+    }));
 
   const toggleExisting = (id: string) =>
-    setRemovedIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+    setRemovedIds((ids) =>
+      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
+    );
 
   /* ---- submit: builds the multipart request ---- */
   const buildFormData = () => {
@@ -384,9 +541,12 @@ export default function AdminEventsPage() {
       if (v !== "") fd.append(k, v);
     });
     // 2) files: one entry per file, under the field name the backend expects
-    KIND_LIST.forEach((kind) => newFiles[kind].forEach((f) => fd.append(kind, f)));
+    KIND_LIST.forEach((kind) =>
+      newFiles[kind].forEach((f) => fd.append(kind, f)),
+    );
     // 3) ids of existing files to delete (edit only)
-    if (removedIds.length > 0) fd.append("removeMedia", JSON.stringify(removedIds));
+    if (removedIds.length > 0)
+      fd.append("removeMedia", JSON.stringify(removedIds));
     return fd;
   };
 
@@ -411,8 +571,13 @@ export default function AdminEventsPage() {
     setSaving(true);
     try {
       await adminUpdateEvent(editTarget._id, buildFormData());
+      setPending((p) => ({ ...p, [editTarget._id]: Date.now() }));
       closeForms();
-      showToast("Event updated successfully", "success");
+      showToast(
+        "Saved. The chatbot is reading it. Wait for the Ready badge before asking.",
+        "success",
+      ); // create
+      showToast("Updated. The chatbot is re-reading it.", "success"); // update
       loadEvents();
     } catch (err: any) {
       showToast(err.message ?? "Failed to update event", "error");
@@ -439,12 +604,16 @@ export default function AdminEventsPage() {
   const filtered = events.filter(
     (e) =>
       e.title.toLowerCase().includes(search.toLowerCase()) ||
-      e.category.toLowerCase().includes(search.toLowerCase())
+      e.category.toLowerCase().includes(search.toLowerCase()),
   );
 
   const setField =
     (k: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const hasNewFiles = KIND_LIST.some((k) => newFiles[k].length > 0);
@@ -452,30 +621,83 @@ export default function AdminEventsPage() {
   // Plain function returning JSX (NOT a component), so inputs keep focus.
   const renderEventForm = (onSubmit: (e: React.FormEvent) => void) => (
     <form onSubmit={onSubmit} className="space-y-4">
-      <Field label="Title *" value={form.title} onChange={setField("title")} required />
-      <Field label="Description *" as="textarea" value={form.description} onChange={setField("description")} required />
+      <Field
+        label="Title *"
+        value={form.title}
+        onChange={setField("title")}
+        required
+      />
+      <Field
+        label="Description *"
+        as="textarea"
+        value={form.description}
+        onChange={setField("description")}
+        required
+      />
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Category" as="select" value={form.category} onChange={setField("category")}>
+        <Field
+          label="Category"
+          as="select"
+          value={form.category}
+          onChange={setField("category")}
+        >
           {CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>
+              {c}
+            </option>
           ))}
         </Field>
-        <Field label="Published" as="select" value={form.isPublished} onChange={setField("isPublished")}>
+        <Field
+          label="Published"
+          as="select"
+          value={form.isPublished}
+          onChange={setField("isPublished")}
+        >
           <option value="true">Published</option>
           <option value="false">Draft</option>
         </Field>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Event Date *" type="date" value={form.eventDate} onChange={setField("eventDate")} required />
-        <Field label="End Date" type="date" value={form.endDate} onChange={setField("endDate")} />
+        <Field
+          label="Event Date *"
+          type="date"
+          value={form.eventDate}
+          onChange={setField("eventDate")}
+          required
+        />
+        <Field
+          label="End Date"
+          type="date"
+          value={form.endDate}
+          onChange={setField("endDate")}
+        />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Venue" value={form.venue} onChange={setField("venue")} placeholder="e.g. Seminar Hall" />
-        <Field label="Organiser" value={form.organiser} onChange={setField("organiser")} />
+        <Field
+          label="Venue"
+          value={form.venue}
+          onChange={setField("venue")}
+          placeholder="e.g. Seminar Hall"
+        />
+        <Field
+          label="Organiser"
+          value={form.organiser}
+          onChange={setField("organiser")}
+        />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Participants" type="number" value={form.participants} onChange={setField("participants")} min="0" />
-        <Field label="Outcome" value={form.outcome} onChange={setField("outcome")} />
+        <Field
+          label="Participants"
+          type="number"
+          value={form.participants}
+          onChange={setField("participants")}
+          min="0"
+        />
+        <Field
+          label="Outcome"
+          value={form.outcome}
+          onChange={setField("outcome")}
+        />
       </div>
 
       {/* Photos, videos, documents */}
@@ -493,7 +715,10 @@ export default function AdminEventsPage() {
       ))}
 
       {saving && hasNewFiles && (
-        <p className="text-xs text-gold">Uploading files, large videos can take a minute. Please keep this window open.</p>
+        <p className="text-xs text-gold">
+          Uploading files, large videos can take a minute. Please keep this
+          window open.
+        </p>
       )}
 
       <FormActions onCancel={closeForms} loading={saving} />
@@ -501,23 +726,21 @@ export default function AdminEventsPage() {
   );
 
   return (
-    <div >
+    <div>
       <div className="ml-6">
         <PageHeader
-        
-        title="Events"
-        subtitle={`${events.length} total events`}
-        action={
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 rounded-xl bg-linear-to-r from-gold to-[#e8b84b] px-5 py-2.5 text-sm font-semibold text-[#0f1117] hover:opacity-90 transition-opacity"
-          >
-            <Plus className="h-4 w-4" />
-            Add Event
-          </button>
-        }
-        
-      />
+          title="Events"
+          subtitle={`${events.length} total events`}
+          action={
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-2 rounded-xl bg-linear-to-r from-gold to-[#e8b84b] px-5 py-2.5 text-sm font-semibold text-[#0f1117] hover:opacity-90 transition-opacity"
+            >
+              <Plus className="h-4 w-4" />
+              Add Event
+            </button>
+          }
+        />
       </div>
 
       {/* Search */}
@@ -535,23 +758,42 @@ export default function AdminEventsPage() {
         <EmptyState message="No events found. Add your first event." />
       ) : (
         <AdminTable
-          headers={["Title", "Category", "Date", "Participants", "Status", "Media", "Actions"]}
+          headers={[
+            "Title",
+            "Category",
+            "Date",
+            "Participants",
+            "Status",
+            "Media",
+            "Chatbot",
+            "Actions",
+          ]}
           loading={loading}
-          cols={7}
+          cols={8}
         >
           {filtered.map((e) => (
             <tr key={e._id} className="hover:bg-white/2 transition-colors">
               <td className="px-4 py-4 max-w-xs">
                 <p className="font-medium text-white truncate">{e.title}</p>
-                {e.venue && <p className="text-xs text-white/40 mt-0.5 truncate">{e.venue}</p>}
+                {e.venue && (
+                  <p className="text-xs text-white/40 mt-0.5 truncate">
+                    {e.venue}
+                  </p>
+                )}
               </td>
               <td className="px-4 py-4">
-                <span className={`rounded-lg px-2.5 py-0.5 text-xs font-semibold ${categoryColors[e.category] ?? categoryColors.Other}`}>
+                <span
+                  className={`rounded-lg px-2.5 py-0.5 text-xs font-semibold ${categoryColors[e.category] ?? categoryColors.Other}`}
+                >
                   {e.category}
                 </span>
               </td>
-              <td className="px-4 py-4 text-white/60 text-xs whitespace-nowrap">{fmt(e.eventDate)}</td>
-              <td className="px-4 py-4 text-white/60 text-xs">{e.participants ?? "—"}</td>
+              <td className="px-4 py-4 text-white/60 text-xs whitespace-nowrap">
+                {fmt(e.eventDate)}
+              </td>
+              <td className="px-4 py-4 text-white/60 text-xs">
+                {e.participants ?? "—"}
+              </td>
               <td className="px-4 py-4">
                 {(e as any).isPublished !== false ? (
                   <span className="flex items-center gap-1.5 text-xs text-emerald-400">
@@ -566,15 +808,51 @@ export default function AdminEventsPage() {
               <td className="px-4 py-4">
                 <span className="flex items-center gap-3 text-xs text-white/40">
                   <span className="flex items-center gap-1" title="Photos">
-                    <ImageIcon className="h-3.5 w-3.5" />{e.images?.length ?? 0}
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    {e.images?.length ?? 0}
                   </span>
                   <span className="flex items-center gap-1" title="Videos">
-                    <VideoIcon className="h-3.5 w-3.5" />{e.videos?.length ?? 0}
+                    <VideoIcon className="h-3.5 w-3.5" />
+                    {e.videos?.length ?? 0}
                   </span>
                   <span className="flex items-center gap-1" title="Documents">
-                    <FileText className="h-3.5 w-3.5" />{e.documents?.length ?? 0}
+                    <FileText className="h-3.5 w-3.5" />
+                    {e.documents?.length ?? 0}
                   </span>
                 </span>
+              </td>
+              <td className="px-4 py-4">
+                {(() => {
+                  const b = badgeOf(e);
+                  if (b === "processing")
+                    return (
+                      <span className="flex items-center gap-1.5 text-xs text-amber-300">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />{" "}
+                        Processing…
+                      </span>
+                    );
+                  if (b === "ready")
+                    return (
+                      <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Ready
+                      </span>
+                    );
+                  if (b === "failed")
+                    return (
+                      <span className="flex items-center gap-1.5 text-xs text-red-400">
+                        <AlertTriangle className="h-3.5 w-3.5" /> Failed
+                        <button
+                          onClick={() => retry(e)}
+                          className="underline hover:text-red-300"
+                        >
+                          Retry
+                        </button>
+                      </span>
+                    );
+                  if (b === "draft")
+                    return <span className="text-xs text-white/30">Draft</span>;
+                  return <span className="text-xs text-white/30">…</span>;
+                })()}
               </td>
               <td className="px-4 py-4">
                 <div className="flex items-center gap-2">
@@ -610,7 +888,12 @@ export default function AdminEventsPage() {
       </Modal>
 
       {/* Delete Modal */}
-      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Event" size="md">
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Event"
+        size="md"
+      >
         <DeleteConfirm
           name={deleteTarget?.title ?? ""}
           onConfirm={handleDelete}

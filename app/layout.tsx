@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
 import { ClerkProvider } from "@clerk/nextjs";
+import ChatWidget from "@/components/chat/chatWidget";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -48,6 +49,7 @@ export default function RootLayout({
               </main>
 
               <Footer />
+               <ChatWidget />
           </Providers>
         </body>
       </html>
