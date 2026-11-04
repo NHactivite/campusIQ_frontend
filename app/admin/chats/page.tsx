@@ -78,7 +78,7 @@ export default function AdminChatsPage() {
       {cards && (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {cards.map(([label, n]) => (
-            <div key={label as string} className="rounded-2xl border border-white/[0.06] bg-[#13161f] p-4">
+            <div key={label as string} className="rounded-2xl border border-white/6 bg-[#13161f] p-4">
               <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">{label}</p>
               <p className="mt-1 text-2xl font-bold text-white">{n}</p>
             </div>
@@ -90,8 +90,8 @@ export default function AdminChatsPage() {
         {([["chats", "Conversations"], ["unanswered", "Unanswered questions"]] as const).map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)}
             className={`rounded-xl px-4 py-2 text-sm font-medium ${tab === k
-              ? "border border-[#c69a36]/30 bg-[#c69a36]/20 text-[#c69a36]"
-              : "border border-white/[0.06] bg-white/[0.03] text-white/40 hover:text-white"}`}>
+              ? "border border-gold/30 bg-gold/20 text-gold"
+              : "border border-white/6 bg-white/3 text-white/40 hover:text-white"}`}>
             {l}
           </button>
         ))}
@@ -154,7 +154,7 @@ export default function AdminChatsPage() {
           {msgs.length === 0 && <p className="text-sm text-white/40">Loading…</p>}
           {msgs.map((m, i) => (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "user" ? "bg-[#c69a36]/20 text-white" : "bg-white/[0.06] text-white/80"}`}>
+              <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "user" ? "bg-gold/20 text-white" : "bg-white/6 text-white/80"}`}>
                 <p className="whitespace-pre-wrap">{m.text}</p>
                 {m.sources?.length > 0 && (
                   <p className="mt-2 text-[11px] text-white/40">

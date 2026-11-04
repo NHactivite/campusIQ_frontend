@@ -145,7 +145,7 @@ export default async function FacilityDetailPage({
                     <a key={d._id} href={d.url} target="_blank" rel="noreferrer"
                       className="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-amber-400 hover:bg-amber-50">
                       <FileText className="h-4 w-4 text-amber-600 shrink-0" />
-                      <span className="truncate max-w-[160px]">{d.originalName ?? "Document"}</span>
+                      <span className="truncate max-w-40">{d.originalName ?? "Document"}</span>
                       {size(d.bytes) && <span className="text-slate-400 text-xs">{size(d.bytes)}</span>}
                       <Download className="h-3.5 w-3.5 text-slate-400 group-hover:text-amber-600 transition-colors" />
                     </a>

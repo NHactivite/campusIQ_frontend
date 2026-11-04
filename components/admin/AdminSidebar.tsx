@@ -67,10 +67,10 @@ export default function AdminSidebar() {
             <p className="text-[10px] text-white/40 leading-tight mt-0.5">Admin Panel</p>
           </div>
         </div>
-        <div className="px-3 py-4 border-t border-white/[0.06] space-y-1">
+        <div className="px-3 py-4 border-t border-white/6 space-y-1">
           <Link
             href="/"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/40 hover:text-white hover:bg-white/[0.05] transition-all"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/40 hover:text-white hover:bg-white/5 transition-all"
           >
             <LogOut className="h-4 w-4" />
             Back to site
@@ -91,16 +91,16 @@ export default function AdminSidebar() {
                 href={href}
                 onClick={() => setOpen(false)}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${isActive
-                  ? "bg-linear-to-r from-[#c69a36]/20 to-[#c69a36]/5 text-[#c69a36] border border-[#c69a36]/20"
-                  : "text-white/50 hover:text-white hover:bg-white/[0.05]"
+                  ? "bg-linear-to-r from-gold/20 to-gold/5 text-gold border border-gold/20"
+                  : "text-white/50 hover:text-white hover:bg-white/5"
                   }`}
               >
                 <Icon
-                  className={`h-4.5 w-4.5 shrink-0 ${isActive ? "text-[#c69a36]" : "text-white/30 group-hover:text-white/70"
+                  className={`h-4.5 w-4.5 shrink-0 ${isActive ? "text-gold" : "text-white/30 group-hover:text-white/70"
                     }`}
                 />
                 <span className="flex-1">{label}</span>
-                {isActive && <ChevronRight className="h-3.5 w-3.5 text-[#c69a36]/60" />}
+                {isActive && <ChevronRight className="h-3.5 w-3.5 text-gold/60" />}
               </Link>
             );
           })}

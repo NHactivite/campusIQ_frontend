@@ -46,18 +46,18 @@ export function FormActions({
   submitLabel?: string;
 }) {
   return (
-    <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/[0.06]">
+    <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/6">
       <button
         type="button"
         onClick={onCancel}
-        className="rounded-xl border border-white/10 px-5 py-2 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-colors"
+        className="rounded-xl border border-white/10 px-5 py-2 text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors"
       >
         Cancel
       </button>
       <button
         type="submit"
         disabled={loading}
-        className="rounded-xl bg-gradient-to-r from-[#c69a36] to-[#e8b84b] px-6 py-2 text-sm font-semibold text-[#0f1117] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        className="rounded-xl bg-linear-to-r from-gold to-[#e8b84b] px-6 py-2 text-sm font-semibold text-[#0f1117] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
       >
         {loading ? "Saving…" : submitLabel}
       </button>
@@ -85,7 +85,7 @@ export function DeleteConfirm({
       <div className="flex items-center justify-end gap-3">
         <button
           onClick={onCancel}
-          className="rounded-xl border border-white/10 px-5 py-2 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-colors"
+          className="rounded-xl border border-white/10 px-5 py-2 text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors"
         >
           Cancel
         </button>
@@ -104,7 +104,7 @@ export function DeleteConfirm({
 export function Toast({ message, type }: { message: string; type: "success" | "error" }) {
   return (
     <div
-      className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 rounded-2xl border px-5 py-3.5 text-sm font-medium shadow-2xl ${
+      className={`fixed bottom-6 right-6 z-100 flex items-center gap-3 rounded-2xl border px-5 py-3.5 text-sm font-medium shadow-2xl ${
         type === "success"
           ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
           : "border-red-500/30 bg-red-500/10 text-red-300"
@@ -158,7 +158,7 @@ export function LoadingRows({ cols = 4 }: { cols?: number }) {
         <tr key={i}>
           {Array.from({ length: cols }).map((_, j) => (
             <td key={j} className="px-4 py-4">
-              <div className="h-4 rounded-lg bg-white/[0.05] animate-pulse" />
+              <div className="h-4 rounded-lg bg-white/5 animate-pulse" />
             </td>
           ))}
         </tr>
@@ -179,10 +179,10 @@ export function AdminTable({
   cols?: number;
 }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-white/[0.06] bg-[#13161f]">
+    <div className="overflow-x-auto rounded-2xl border border-white/6 bg-[#13161f]">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/[0.06]">
+          <tr className="border-b border-white/6">
             {headers.map((h) => (
               <th
                 key={h}
@@ -193,7 +193,7 @@ export function AdminTable({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/[0.04]">
+        <tbody className="divide-y divide-white/4">
           {loading ? <LoadingRows cols={cols ?? headers.length} /> : children}
         </tbody>
       </table>

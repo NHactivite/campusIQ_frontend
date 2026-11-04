@@ -192,7 +192,7 @@ function MediaPicker({
         </span>
       </div>
 
-      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-4 py-5 text-sm text-white/50 transition-colors hover:border-gold/50 hover:text-gold">
+      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/15 bg-white/2 px-4 py-5 text-sm text-white/50 transition-colors hover:border-gold/50 hover:text-gold">
         <Icon className="h-4 w-4" />
         {cfg.button}
         <input
@@ -407,7 +407,7 @@ export default function AdminEventsPage() {
     // an edit is re-indexed from scratch, so give it a few seconds before trusting "indexed"
     if (pending[e._id] && Date.now() - pending[e._id] < 10_000)
       return "processing";
-    if (r.status === "indexed") return "ready";
+    if (r.status === "indexed" || r.status === "partial") return "ready";
     const age = Date.now() - new Date(r.updatedAt ?? 0).getTime();
     return age < 5 * 60_000 ? "processing" : "failed";
   };
@@ -573,11 +573,7 @@ export default function AdminEventsPage() {
       await adminUpdateEvent(editTarget._id, buildFormData());
       setPending((p) => ({ ...p, [editTarget._id]: Date.now() }));
       closeForms();
-      showToast(
-        "Saved. The chatbot is reading it. Wait for the Ready badge before asking.",
-        "success",
-      ); // create
-      showToast("Updated. The chatbot is re-reading it.", "success"); // update
+      showToast("Updated. The chatbot is re-reading it.", "success");
       loadEvents();
     } catch (err: any) {
       showToast(err.message ?? "Failed to update event", "error");
