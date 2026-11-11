@@ -173,35 +173,35 @@ export const adminUpdateFacility = async (id: string, data: FormData) =>
 export const adminDeleteFacility = (id: string) =>
   request(`/api/facilities/${id}`, { method: "DELETE" }, "Failed to delete facility");
 
-// ─── Programmes (admin) ───────────────────────────────────────────────────────────────
-export type ProgrammeFile = { _id: string; url: string; originalName?: string; format?: string; bytes?: number; };
-export type ProgrammeItem = {
-  _id: string;
-  name: string;
-  slug: string;
-  degreeLevel: string;
-  department: string;
-  duration: string;
-  eligibilityCriteria?: string;
-  admissionRequirements?: string;
-  courseOverview?: string;
-  availableSeats?: number;
-  syllabus: ProgrammeFile[];
-  isPublished: boolean;
-  createdAt?: string;
-};
+// // ─── Programmes (admin) ───────────────────────────────────────────────────────────────
+// export type ProgrammeFile = { _id: string; url: string; originalName?: string; format?: string; bytes?: number; };
+// export type ProgrammeItem = {
+//   _id: string;
+//   name: string;
+//   slug: string;
+//   degreeLevel: string;
+//   department: string;
+//   duration: string;
+//   eligibilityCriteria?: string;
+//   admissionRequirements?: string;
+//   courseOverview?: string;
+//   availableSeats?: number;
+//   syllabus: ProgrammeFile[];
+//   isPublished: boolean;
+//   createdAt?: string;
+// };
 
-export const adminGetProgrammes = async (): Promise<ProgrammeItem[]> =>
-  (await request("/api/programmes/admin/all", {}, "Failed to fetch programmes")).data;
+// export const adminGetProgrammes = async (): Promise<ProgrammeItem[]> =>
+//   (await request("/api/programmes/admin/all", {}, "Failed to fetch programmes")).data;
 
-export const adminCreateProgramme = async (data: FormData) =>
-  (await request("/api/programmes", { method: "POST", body: data }, "Failed to create programme")).data;
+// export const adminCreateProgramme = async (data: FormData) =>
+//   (await request("/api/programmes", { method: "POST", body: data }, "Failed to create programme")).data;
 
-export const adminUpdateProgramme = async (id: string, data: FormData) =>
-  (await request(`/api/programmes/${id}`, { method: "PATCH", body: data }, "Failed to update programme")).data;
+// export const adminUpdateProgramme = async (id: string, data: FormData) =>
+//   (await request(`/api/programmes/${id}`, { method: "PATCH", body: data }, "Failed to update programme")).data;
 
-export const adminDeleteProgramme = (id: string) =>
-  request(`/api/programmes/${id}`, { method: "DELETE" }, "Failed to delete programme");
+// export const adminDeleteProgramme = (id: string) =>
+//   request(`/api/programmes/${id}`, { method: "DELETE" }, "Failed to delete programme");
 // ─── Index status (admin) ────────────────────────────────────────────────────
 export type IndexPart = { label: string; status: "ok" | "missing" | "skipped" | "no_text"; note?: string };
 export type IndexRow = {

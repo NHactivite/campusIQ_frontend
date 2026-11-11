@@ -15,25 +15,32 @@ import {
 
 type ToastState = { message: string; type: "success" | "error" } | null;
 
-const CATEGORIES = ["library", "sports", "laboratory", "canteen", "hostel", "medical", "transport", "it", "auditorium", "other"];
+const CATEGORIES = [
+  "research",
+  "innovation",
+  "incubation",
+  "laboratory",
+  "IT",
+  "auditorium",
+  "other",
+];
 const ACCEPT_IMAGES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ACCEPT_DOCS = ["application/pdf"];
 const MAX_IMAGES = 10;
 const MAX_DOCS = 10;
 const MAX_MB = 50;
 
+
 const categoryColors: Record<string, string> = {
-  library: "bg-blue-500/20 text-blue-300",
-  sports: "bg-green-500/20 text-green-300",
-  laboratory: "bg-purple-500/20 text-purple-300",
-  canteen: "bg-orange-500/20 text-orange-300",
-  hostel: "bg-rose-500/20 text-rose-300",
-  medical: "bg-red-500/20 text-red-300",
-  transport: "bg-amber-500/20 text-amber-300",
+  research: "bg-blue-500/20 text-blue-300",
+  innovation: "bg-purple-500/20 text-purple-300",
+  incubation: "bg-emerald-500/20 text-emerald-300",
+  laboratory: "bg-violet-500/20 text-violet-300",
   it: "bg-cyan-500/20 text-cyan-300",
   auditorium: "bg-indigo-500/20 text-indigo-300",
   other: "bg-slate-500/20 text-slate-300",
 };
+
 
 const emptyForm = {
   name: "",

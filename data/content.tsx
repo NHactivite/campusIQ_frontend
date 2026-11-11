@@ -5,7 +5,6 @@ export const nav = [
   { label: "Home", href: "/" },
   { label: "Assistant", href: "/chat" },
   { label: "Facilities", href: "/facilities" },
-  { label: "Programmes", href: "/programmes" },
   { label: "Notices", href: "/notices" },
   { label: "Events", href: "/dashboard" },
   { label: "Vision & Mission", href: "/#vision" },

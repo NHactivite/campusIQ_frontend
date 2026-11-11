@@ -82,15 +82,12 @@ export default function MandateSection() {
       <div className="relative mx-auto ">
         {/* header */}
         <header className="mb-8 max-w-3xl mt-10 lg:mb-8">
-          <h2 className="text-4xl leading-[1.12] font-extrabold tracking-tight text-[#0d1c2f] sm:text-5xl lg:text-5xl">
+          <h2 className="text-4xl leading-[1.12] font-extrabold tracking-tight text-[#0d1c2f] sm:text-5xl lg:text-6xl">
             Why{" "}
-            <span className="bg-linear-to-r from-blue-600 via-sky-500 to-indigo-500 bg-clip-text text-transparent">
-              Sibsagar
-            </span>{" "}
-            University{" "}
-            <span className="bg-linear-to-r from-amber-600 via-amber-500 to-orange-500 bg-clip-text text-transparent">
-              Matters
-            </span>
+            <span className="bg-linear-to-r from-blue-600 via-sky-500 to-indigo-500 bg-clip-text text-transparent">RDC</span>{" "}
+            &amp;{" "}
+            <span className="bg-linear-to-r from-amber-600 via-amber-500 to-orange-500 bg-clip-text text-transparent">IIC</span>{" "}
+            Exist
           </h2>
 
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-[#44474d] sm:text-xl">

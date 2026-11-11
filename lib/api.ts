@@ -224,39 +224,5 @@ export async function getFacility(slug: string): Promise<FacilityItem | null> {
   return (await res.json()).data;
 }
 
-// ─── Programmes ───────────────────────────────────────────────────────────────
-export type ProgrammeItem = {
-  _id: string;
-  name: string;
-  slug: string;
-  degreeLevel: string;
-  department: string;
-  duration: string;
-  eligibilityCriteria?: string;
-  admissionRequirements?: string;
-  courseOverview?: string;
-  availableSeats?: number;
-  syllabus: Media[];
-  isPublished: boolean;
-  createdAt?: string;
-};
 
-export async function getProgrammes(
-  opts: { degreeLevel?: string; department?: string; search?: string; page?: number; limit?: number } = {},
-): Promise<{ data: ProgrammeItem[]; pagination: EventsPagination }> {
-  const q = new URLSearchParams({ page: String(opts.page ?? 1), limit: String(opts.limit ?? 12) });
-  if (opts.degreeLevel && opts.degreeLevel !== "all") q.set("degreeLevel", opts.degreeLevel);
-  if (opts.department) q.set("department", opts.department);
-  if (opts.search) q.set("search", opts.search);
-  const res = await fetch(`${API_URL}/api/programmes?${q}`, { next: { revalidate: 30 } });
-  if (!res.ok) throw new Error("Could not load programmes");
-  const json = await res.json();
-  return { data: json.data, pagination: json.pagination };
-}
 
-export async function getProgramme(slug: string): Promise<ProgrammeItem | null> {
-  const res = await fetch(`${API_URL}/api/programmes/${slug}`, { next: { revalidate: 30 } });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error("Could not load programme");
-  return (await res.json()).data;
-}

@@ -128,8 +128,8 @@ export default function LinkagesSection({
       id="linkages"
       className="relative w-full overflow-hidden px-4 py-6 sm:px-6 lg:px-12 mt-10"
     >
-      <h2 className="text-3xl font-bold tracking-tight text-[#0d1c2f] lg:text-5xl">
-        Academic &amp; Industry Partnerships
+      <h2 className="mb-6 text-3xl font-bold tracking-tight text-[#0d1c2f] lg:text-5xl">
+        Industry &amp; academic linkages
       </h2>
 
       {linkages.length > 0 ? (

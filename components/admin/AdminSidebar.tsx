@@ -15,7 +15,6 @@ const nav = [
   { href: "/admin/events", label: "Events", icon: CalendarDays },
   { href: "/admin/notices", label: "Notices & Docs", icon: FileText },
   { href: "/admin/facilities", label: "Facilities", icon: Building2 },
-  { href: "/admin/programmes", label: "Programmes", icon: GraduationCap },
   { href: "/admin/linkages", label: "Linkages", icon: Link2 },
   { href: "/admin/features", label: "Features", icon: Sparkles },
   { href: "/admin/glance", label: "At a Glance", icon: BarChart3 },

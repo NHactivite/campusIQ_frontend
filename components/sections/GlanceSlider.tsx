@@ -77,7 +77,7 @@ export default function GlanceSlider({ cards }: { cards: GlanceItem[] }) {
         <div className="mb-10 flex flex-col justify-between gap-6 border-b border-[#d5e3fd] pb-8 md:flex-row md:items-end">
           <div>
             <h2 className="flex flex-wrap items-center gap-x-3 text-3xl font-bold tracking-tight lg:text-4xl">
-              <span className="text-[#0d1c2f]">University</span>
+              <span className="text-[#0d1c2f]">RDC–IIC</span>
               <span className="bg-linear-to-r from-blue-600 via-blue-500 to-blue-600 bg-clip-text font-serif font-normal text-transparent italic">
                 at a glance
               </span>

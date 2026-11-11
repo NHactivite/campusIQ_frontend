@@ -1,33 +1,85 @@
 import Link from "next/link";
 import Image from "next/image";
 import {
-  MapPin, Clock, Phone, Search, ChevronRight, Building2, Wifi,
+  MapPin,
+  Clock,
+  Phone,
+  Search,
+  ChevronRight,
+  Building2,
+  Wifi,
 } from "lucide-react";
-import { getFacilities, type FacilityItem, type EventsPagination } from "@/lib/api";
+import {
+  getFacilities,
+  type FacilityItem,
+  type EventsPagination,
+} from "@/lib/api";
 
 export const metadata = {
-  title: "Campus Facilities | CampusIQ",
-  description: "Explore all campus facilities — libraries, labs, sports, hostels, and more at Sibsagar University.",
+  title: "RDC & IIC Facilities | Sibsagar University",
+  description:
+    "Explore research, innovation, incubation, laboratory, IT and institutional facilities at Sibsagar University.",
 };
 
 const CATEGORIES = [
-  "all", "library", "sports", "laboratory", "canteen", "hostel",
-  "medical", "transport", "it", "auditorium", "other",
+  "all",
+  "research",
+  "innovation",
+  "incubation",
+  "laboratory",
+  "IT",
+  "auditorium",
+  "other",
 ];
 
 const LIMIT = 12;
 
-const categoryColors: Record<string, { bg: string; text: string; border: string }> = {
-  library: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  sports: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
-  laboratory: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
-  canteen: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
-  hostel: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+const categoryColors: Record<
+  string,
+  { bg: string; text: string; border: string }
+> = {
+  library: {
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "border-blue-200",
+  },
+  sports: {
+    bg: "bg-green-50",
+    text: "text-green-700",
+    border: "border-green-200",
+  },
+  laboratory: {
+    bg: "bg-purple-50",
+    text: "text-purple-700",
+    border: "border-purple-200",
+  },
+  canteen: {
+    bg: "bg-orange-50",
+    text: "text-orange-700",
+    border: "border-orange-200",
+  },
+  hostel: {
+    bg: "bg-rose-50",
+    text: "text-rose-700",
+    border: "border-rose-200",
+  },
   medical: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
-  transport: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  transport: {
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    border: "border-amber-200",
+  },
   it: { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200" },
-  auditorium: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
-  other: { bg: "bg-slate-50", text: "text-slate-600", border: "border-slate-200" },
+  auditorium: {
+    bg: "bg-indigo-50",
+    text: "text-indigo-700",
+    border: "border-indigo-200",
+  },
+  other: {
+    bg: "bg-slate-50",
+    text: "text-slate-600",
+    border: "border-slate-200",
+  },
 };
 
 const href = (p: { category?: string; q?: string; page?: number }) => {
@@ -41,7 +93,9 @@ const href = (p: { category?: string; q?: string; page?: number }) => {
 
 function pageList(current: number, total: number): (number | "…")[] {
   const set = new Set([1, total, current - 1, current, current + 1]);
-  const nums = [...set].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+  const nums = [...set]
+    .filter((n) => n >= 1 && n <= total)
+    .sort((a, b) => a - b);
   const out: (number | "…")[] = [];
   nums.forEach((n, i) => {
     if (i > 0 && n - nums[i - 1] > 1) out.push("…");
@@ -75,15 +129,21 @@ function FacilityCard({ f }: { f: FacilityItem }) {
           </div>
         )}
         {/* Category badge */}
-        <span className={`absolute top-3 left-3 rounded-full border px-3 py-0.5 text-[11px] font-semibold capitalize ${color.bg} ${color.text} ${color.border}`}>
+        <span
+          className={`absolute top-3 left-3 rounded-full border px-3 py-0.5 text-[11px] font-semibold capitalize ${color.bg} ${color.text} ${color.border}`}
+        >
           {f.category}
         </span>
       </div>
 
       {/* Content */}
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <h2 className="font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-2">{f.name}</h2>
-        <p className="text-sm text-slate-500 line-clamp-2 flex-1">{f.description}</p>
+        <h2 className="font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-2">
+          {f.name}
+        </h2>
+        <p className="text-sm text-slate-500 line-clamp-2 flex-1">
+          {f.description}
+        </p>
 
         {/* Meta */}
         <div className="space-y-1.5">
@@ -105,7 +165,10 @@ function FacilityCard({ f }: { f: FacilityItem }) {
         {f.amenities?.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {f.amenities.slice(0, 3).map((a) => (
-              <span key={a} className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-600 font-medium">
+              <span
+                key={a}
+                className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-600 font-medium"
+              >
                 {a}
               </span>
             ))}
@@ -132,14 +195,26 @@ export default async function FacilitiesPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
-  const category = CATEGORIES.includes(sp.category ?? "") ? sp.category! : "all";
+  const category = CATEGORIES.includes(sp.category ?? "")
+    ? sp.category!
+    : "all";
   const q = (sp.q ?? "").trim().slice(0, 100);
 
   let facilities: FacilityItem[] = [];
-  let pagination: EventsPagination = { page: 1, limit: LIMIT, total: 0, pages: 0 };
+  let pagination: EventsPagination = {
+    page: 1,
+    limit: LIMIT,
+    total: 0,
+    pages: 0,
+  };
   let failed = false;
   try {
-    const res = await getFacilities({ category, search: q, page, limit: LIMIT });
+    const res = await getFacilities({
+      category,
+      search: q,
+      page,
+      limit: LIMIT,
+    });
     facilities = res.data;
     pagination = res.pagination;
   } catch {
@@ -153,18 +228,26 @@ export default async function FacilitiesPage({
   return (
     <div className="pb-20">
       {/* Header banner */}
+
       <div className="bg-linear-to-br from-amber-50 to-orange-50 border-b border-amber-100">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-4">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-8">
           <div className="flex items-center gap-3 mb-3">
             <div className="rounded-xl bg-amber-100 p-2.5">
               <Building2 className="h-6 w-6 text-amber-700" />
             </div>
-            <span className="text-sm font-semibold uppercase tracking-widest text-amber-700">Campus Facilities</span>
+            <span className="text-sm font-semibold uppercase tracking-widest text-amber-700">
+              RDC & IIC Facilities
+            </span>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 sm:text-3xl">Explore Our Campus</h1>
-          <p className="mt-3 max-w-2xl text-slate-600 text-xs">
-            Discover world-class facilities at Sibsagar University — from cutting-edge laboratories to comfortable
-            hostels and vibrant sports complexes.
+
+          <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+            Research & Innovation Infrastructure
+          </h1>
+
+          <p className="mt-3 max-w-2xl text-slate-600 text-sm leading-relaxed">
+            Explore the research, innovation and incubation facilities at
+            Sibsagar University, supporting researchers, students and aspiring
+            entrepreneurs in transforming ideas into impactful solutions.
           </p>
         </div>
       </div>
@@ -172,7 +255,9 @@ export default async function FacilitiesPage({
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         {/* Search */}
         <form action="/facilities" className="relative mb-6">
-          {category !== "all" && <input type="hidden" name="category" value={category} />}
+          {category !== "all" && (
+            <input type="hidden" name="category" value={category} />
+          )}
           <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
           <input
             name="q"
@@ -189,10 +274,11 @@ export default async function FacilitiesPage({
               key={c}
               href={href({ category: c, q })}
               aria-current={c === category ? "page" : undefined}
-              className={`rounded-full border px-4 py-1.5 text-sm font-medium capitalize transition-all ${c === category
-                ? "border-amber-400 bg-amber-400 text-white shadow-sm"
-                : "border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:bg-amber-50"
-                }`}
+              className={`rounded-full border px-4 py-1.5 text-sm font-medium capitalize transition-all ${
+                c === category
+                  ? "border-amber-400 bg-amber-400 text-white shadow-sm"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:bg-amber-50"
+              }`}
             >
               {c}
             </Link>
@@ -215,45 +301,68 @@ export default async function FacilitiesPage({
         ) : facilities.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-20 text-center">
             <Building2 className="mx-auto h-10 w-10 text-slate-300 mb-3" />
-            <p className="text-slate-500">No facilities found{q ? ` for "${q}"` : ""}.</p>
+            <p className="text-slate-500">
+              No facilities found{q ? ` for "${q}"` : ""}.
+            </p>
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {facilities.map((f) => <FacilityCard key={f._id} f={f} />)}
+            {facilities.map((f) => (
+              <FacilityCard key={f._id} f={f} />
+            ))}
           </div>
         )}
 
         {/* Pagination */}
         {pages > 1 && (
-          <nav aria-label="Pagination" className="mt-12 flex flex-col items-center gap-4">
+          <nav
+            aria-label="Pagination"
+            className="mt-12 flex flex-col items-center gap-4"
+          >
             <div className="flex flex-wrap items-center justify-center gap-1.5">
               {pagination.page > 1 ? (
-                <Link href={href({ category, q, page: pagination.page - 1 })}
-                  className="rounded-xl border bg-white px-4 py-2 text-sm font-medium hover:bg-amber-50 transition-colors">
+                <Link
+                  href={href({ category, q, page: pagination.page - 1 })}
+                  className="rounded-xl border bg-white px-4 py-2 text-sm font-medium hover:bg-amber-50 transition-colors"
+                >
                   Previous
                 </Link>
               ) : (
-                <span className="rounded-xl border bg-white px-4 py-2 text-sm font-medium opacity-40">Previous</span>
+                <span className="rounded-xl border bg-white px-4 py-2 text-sm font-medium opacity-40">
+                  Previous
+                </span>
               )}
               {pageList(pagination.page, pages).map((p, i) =>
                 p === "…" ? (
-                  <span key={`gap-${i}`} className="px-1 text-slate-400">…</span>
+                  <span key={`gap-${i}`} className="px-1 text-slate-400">
+                    …
+                  </span>
                 ) : (
-                  <Link key={p} href={href({ category, q, page: p })}
+                  <Link
+                    key={p}
+                    href={href({ category, q, page: p })}
                     aria-current={p === pagination.page ? "page" : undefined}
-                    className={`h-9 min-w-9 rounded-xl px-3 py-2 text-center text-sm font-medium transition-colors ${p === pagination.page ? "bg-amber-500 text-white" : "border bg-white hover:bg-amber-50"
-                      }`}>
+                    className={`h-9 min-w-9 rounded-xl px-3 py-2 text-center text-sm font-medium transition-colors ${
+                      p === pagination.page
+                        ? "bg-amber-500 text-white"
+                        : "border bg-white hover:bg-amber-50"
+                    }`}
+                  >
                     {p}
                   </Link>
                 ),
               )}
               {pagination.page < pages ? (
-                <Link href={href({ category, q, page: pagination.page + 1 })}
-                  className="rounded-xl border bg-white px-4 py-2 text-sm font-medium hover:bg-amber-50 transition-colors">
+                <Link
+                  href={href({ category, q, page: pagination.page + 1 })}
+                  className="rounded-xl border bg-white px-4 py-2 text-sm font-medium hover:bg-amber-50 transition-colors"
+                >
                   Next
                 </Link>
               ) : (
-                <span className="rounded-xl border bg-white px-4 py-2 text-sm font-medium opacity-40">Next</span>
+                <span className="rounded-xl border bg-white px-4 py-2 text-sm font-medium opacity-40">
+                  Next
+                </span>
               )}
             </div>
           </nav>
