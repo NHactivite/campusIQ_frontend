@@ -31,14 +31,15 @@ import {
 } from "@/lib/chat";
 
 /* ---------------- interface text (English / Assamese) ---------------- */
+
 const T = {
   en: {
-    title: "CampusIQ Assistant",
+    title: "RDC & IIC Assistant",
     subtitle:
-      "Ask about regulations, exams, scholarships, admissions and notices.",
+      "Ask about research, innovation, incubation, entrepreneurship, IPR and institutional notices.",
     online: "Online",
     connectingShort: "Connecting…",
-    placeholder: "Type your question…",
+    placeholder: "Ask about research or innovation…",
     send: "Send",
     newChat: "New chat",
     sources: "Sources",
@@ -47,7 +48,7 @@ const T = {
     noChats: "No chats yet",
     welcome: "How can I help you today?",
     welcomeSub:
-      "Ask in English or Assamese. Answers come from official university documents.",
+      "Ask in English or Assamese. Get information from official university documents.",
     tryAsking: "Try asking",
     signIn: "Please sign in to use the assistant.",
     signInBtn: "Sign in",
@@ -68,12 +69,14 @@ const T = {
     stop: "Stop",
     speechFailed: "Voice is unavailable right now.",
   },
+
   as: {
-    title: "CampusIQ সহায়ক",
-    subtitle: "নিয়ম, পৰীক্ষা, বৃত্তি, নামভৰ্তি আৰু বিজ্ঞপ্তিৰ বিষয়ে সোধক।",
+    title: "RDC & IIC সহায়ক",
+    subtitle:
+      "গৱেষণা, উদ্ভাৱন, ইনকিউবেচন, উদ্যোগশীলতা, বৌদ্ধিক সম্পত্তিৰ অধিকাৰ আৰু জাননীৰ বিষয়ে সোধক।",
     online: "অনলাইন",
     connectingShort: "সংযোগ হৈ আছে…",
-    placeholder: "আপোনাৰ প্ৰশ্ন লিখক…",
+    placeholder: "গৱেষণা বা উদ্ভাৱনৰ বিষয়ে প্ৰশ্ন লিখক…",
     send: "পঠিয়াওক",
     newChat: "নতুন কথোপকথন",
     sources: "উৎস",
@@ -82,39 +85,44 @@ const T = {
     noChats: "এতিয়াও কোনো কথোপকথন নাই",
     welcome: "আজি মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?",
     welcomeSub:
-      "অসমীয়া বা ইংৰাজীত সোধক। উত্তৰ বিশ্ববিদ্যালয়ৰ official নথিপত্ৰৰ পৰা আহে।",
+      "অসমীয়া বা ইংৰাজীত প্ৰশ্ন সোধক। উত্তৰসমূহ বিশ্ববিদ্যালয়ৰ চৰকাৰী নথিপত্ৰৰ পৰা প্ৰদান কৰা হয়।",
     tryAsking: "এনে প্ৰশ্ন সুধি চাওক",
     signIn: "সহায়ক ব্যৱহাৰ কৰিবলৈ অনুগ্ৰহ কৰি ছাইন ইন কৰক।",
     signInBtn: "ছাইন ইন",
     connecting: "সহায়কৰ সৈতে সংযোগ কৰি আছে…",
     searching: "বিশ্ববিদ্যালয়ৰ নথিপত্ৰ বিচাৰি আছে…",
     thinking: "লিখি আছে",
-    failed: "সহায়কৰ সৈতে সংযোগ কৰিব পৰা নগ’ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+    failed: "সহায়কৰ সৈতে সংযোগ কৰিব পৰা নগ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
     privacy:
-      "কথোপকথনসমূহ সংৰক্ষিত হয় আৰু উত্তৰ উন্নত কৰিবলৈ প্ৰশাসকে পৰ্যালোচনা কৰিব পাৰে।",
+      "কথোপকথনসমূহ সংৰক্ষিত হয় আৰু উত্তৰ উন্নত কৰাৰ বাবে প্ৰশাসকে পৰ্যালোচনা কৰিব পাৰে।",
     deleteChat: "কথোপকথন মচক",
     copy: "কপি",
-    copied: "কপি হ’ল",
+    copied: "কপি হ'ল",
     today: "আজি",
     yesterday: "কালি",
     earlier: "আগৰ",
     close: "বন্ধ",
     listen: "শুনক",
-    stop: "বন্ধ",
+    stop: "বন্ধ কৰক",
     speechFailed: "এই মুহূৰ্তত কণ্ঠস্বৰ উপলব্ধ নহয়।",
   },
 } as const;
 
 const EXAMPLES = {
   en: [
-    "What subjects are in MCA 1st semester?",
-    "What is the last date to complete the personal profile for ID cards?",
-    "Where is the cheque distribution programme held?",
+    "What research facilities are available at Sibsagar University?",
+    "How can I participate in IIC innovation activities?",
+    "What incubation support is available for startups?",
+    "How can researchers apply for research funding?",
+    "What are the procedures for intellectual property rights (IPR)?",
   ],
+
   as: [
-    "MCA প্ৰথম ছেমেষ্টাৰত কি কি বিষয় আছে?",
-    "আইডি কাৰ্ডৰ বাবে ব্যক্তিগত প্ৰফাইল সম্পূৰ্ণ কৰাৰ শেষ তাৰিখ কেতিয়া?",
-    "চেক বিতৰণ কাৰ্যসূচী ক'ত অনুষ্ঠিত হ'ব?",
+    "শিৱসাগৰ বিশ্ববিদ্যালয়ত কি কি গৱেষণাৰ সুবিধা উপলব্ধ?",
+    "IIC-ৰ উদ্ভাৱনীমূলক কাৰ্যসূচীত কেনেকৈ অংশগ্ৰহণ কৰিব পাৰোঁ?",
+    "নতুন ষ্টাৰ্টআপৰ বাবে কি কি ইনকিউবেচন সুবিধা আছে?",
+    "গৱেষণাৰ বাবে পুঁজি কেনেকৈ লাভ কৰিব পাৰি?",
+    "বৌদ্ধিক সম্পত্তিৰ অধিকাৰ (IPR) সম্পৰ্কীয় নিয়মসমূহ কি?",
   ],
 } as const;
 

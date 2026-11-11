@@ -62,7 +62,7 @@ export default function AdminSidebar() {
             style={{ width: 38, height: "auto" }}
           />
           <div>
-            <p className="text-sm font-bold text-white leading-tight">CampusIQ</p>
+            <p className="text-sm font-bold text-white leading-tight">RDC & IIC</p>
             <p className="text-[10px] text-white/40 leading-tight mt-0.5">Admin Panel</p>
           </div>
         </div>

@@ -13,8 +13,18 @@ const uid = () =>
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-const GREETING = "Hi! I'm CampusIQ. Ask me about notices, exams or admissions, in English or অসমীয়া.";
-const SUGGESTIONS = ["What subjects are in MCA 1st semester?", "মোৰ পৰীক্ষাৰ তাৰিখ কেতিয়া?"];
+const GREETING =
+  "Hi! I'm the RDC & IIC Assistant. Ask me about research activities, innovation initiatives, incubation support, entrepreneurship, IPR or institutional notices, in English or অসমীয়া.";
+
+const SUGGESTIONS = [
+  "What research facilities are available at Sibsagar University?",
+  "How can I participate in IIC innovation activities?",
+  "What incubation support is available for startups?",
+  "How can I apply for research funding?",
+  "বিশ্ববিদ্যালয়ত কি কি উদ্ভাৱনীমূলক কাৰ্যসূচী অনুষ্ঠিত হয়?",
+  "গৱেষণা আৰু উদ্ভাৱনৰ বাবে কি কি সুবিধা উপলব্ধ?",
+];
+
 
 // "**bold**" -> <strong>, "* item" -> bullet, nothing else (safe, no HTML injection)
 function Rich({ text }: { text: string }) {

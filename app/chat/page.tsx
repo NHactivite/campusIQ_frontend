@@ -2,9 +2,9 @@ import ChatClient from "@/sections/ChatClinent";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "CampusIQ Assistant | Sibsagar University",
+  title: "RDC & IIC Assistant| Sibsagar University",
   description:
-    "Bilingual (Assamese and English) AI assistant for Sibsagar University regulations, exams, scholarships, admissions and notices.",
+    "Bilingual (Assamese and English) AI assistant for Sibsagar University",
 };
 
 export default function ChatPage() {
