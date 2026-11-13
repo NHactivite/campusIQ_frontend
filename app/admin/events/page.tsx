@@ -17,6 +17,7 @@ import {
   Loader2,
   CheckCircle2,
   AlertTriangle,
+  FileDown,
 } from "lucide-react";
 import {
   adminGetEvents,
@@ -25,6 +26,7 @@ import {
   adminDeleteEvent,
   adminGetIndexStatus,
   adminResyncItem,
+  adminDownloadEventReport,
 } from "@/lib/adminApi";
 import Modal from "@/components/admin/Modal";
 import {
@@ -721,6 +723,20 @@ export default function AdminEventsPage() {
     </form>
   );
 
+  const [reporting, setReporting] = useState<string | null>(null);
+
+  const downloadReport = async (e: EventItem) => {
+    setReporting(e._id);
+    try {
+      await adminDownloadEventReport(e._id, e.slug);
+      showToast("Report downloaded", "success");
+    } catch (err: any) {
+      showToast(err.message ?? "Could not generate the report", "error");
+    } finally {
+      setReporting(null);
+    }
+  };
+
   return (
     <div>
       <div className="ml-6">
@@ -852,6 +868,18 @@ export default function AdminEventsPage() {
               </td>
               <td className="px-4 py-4">
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => downloadReport(e)}
+                    disabled={reporting !== null}
+                    className="rounded-lg p-1.5 text-white/40 hover:text-gold hover:bg-gold/10 transition-colors disabled:opacity-40"
+                    title="Download PDF report"
+                  >
+                    {reporting === e._id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <FileDown className="h-3.5 w-3.5" />
+                    )}
+                  </button>
                   <button
                     onClick={() => openEdit(e)}
                     className="rounded-lg p-1.5 text-white/40 hover:text-gold hover:bg-gold/10 transition-colors"

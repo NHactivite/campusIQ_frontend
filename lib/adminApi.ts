@@ -173,6 +173,26 @@ export const adminUpdateFacility = async (id: string, data: FormData) =>
 export const adminDeleteFacility = (id: string) =>
   request(`/api/facilities/${id}`, { method: "DELETE" }, "Failed to delete facility");
 
+// report----------------
+
+export async function adminDownloadEventReport(id: string, slug: string) {
+  const token = await tokenGetter?.();
+  const res = await fetch(`${API_URL}/api/events/${id}/report`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message ?? "Failed to generate report");
+  }
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${slug || "event"}-report.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // // ─── Programmes (admin) ───────────────────────────────────────────────────────────────
 // export type ProgrammeFile = { _id: string; url: string; originalName?: string; format?: string; bytes?: number; };
 // export type ProgrammeItem = {
