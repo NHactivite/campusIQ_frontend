@@ -270,3 +270,142 @@ export const adminUnanswered = async (page = 1) => {
   const j = await full(`/api/chats/admin/unanswered?page=${page}`, "Failed to load questions");
   return { data: j.data as UnansweredRow[], pagination: j.pagination as Pag };
 };
+
+// ─── Attendance (admin) ───────────────────────────────────────────────────────
+export type AttendanceSession = {
+  _id: string;
+  title: string;
+  description?: string;
+  eventId?: string;
+  status: "open" | "closed";
+  totalGenerated: number;
+  createdBy: string;
+  closedAt?: string;
+  createdAt: string;
+  pool?: { available: number; allocated: number; used: number };
+  submittedCount?: number;
+};
+
+export type AttendanceRecord = {
+  _id: string;
+  sessionId: string;
+  token: string;
+  department: string;
+  semester: number;
+  rollNumber: string;
+  volunteerId: string;
+  submittedAt: string;
+};
+
+export type VolunteerActivity = {
+  volunteerId: string;
+  currentToken?: string;
+  allocatedAt?: number;
+  submissions: number;
+};
+
+export const adminListSessions = (): Promise<{ data: AttendanceSession[] }> =>
+  request("/api/attendance/sessions", {}, "Failed to load sessions");
+
+export const adminCreateSession = (data: {
+  title: string;
+  description?: string;
+  eventId?: string;
+  initialCount?: number;
+}) =>
+  request(
+    "/api/attendance/sessions",
+    { method: "POST", ...jsonBody(data) },
+    "Failed to create session"
+  );
+
+export const adminGetSession = (id: string): Promise<{ data: AttendanceSession }> =>
+  request(`/api/attendance/sessions/${id}`, {}, "Failed to load session");
+
+export const adminMintMore = (id: string, count: number) =>
+  request(
+    `/api/attendance/sessions/${id}/mint`,
+    { method: "POST", ...jsonBody({ count }) },
+    "Failed to mint tokens"
+  );
+
+export const adminCloseSession = (id: string) =>
+  request(
+    `/api/attendance/sessions/${id}/close`,
+    { method: "POST" },
+    "Failed to close session"
+  );
+
+export const adminGetRecords = (
+  id: string,
+  params?: { page?: number; limit?: number; department?: string; semester?: number }
+): Promise<{ data: AttendanceRecord[]; pagination: Pagination }> => {
+  const q = new URLSearchParams();
+  if (params)
+    Object.entries(params).forEach(([k, v]) => v !== undefined && q.set(k, String(v)));
+  return request(
+    `/api/attendance/sessions/${id}/records?${q}`,
+    {},
+    "Failed to load records"
+  );
+};
+
+export const adminGetVolunteers = (id: string): Promise<{ data: VolunteerActivity[]; volunteers?: VolunteerActivity[] }> =>
+  request(`/api/attendance/sessions/${id}/volunteers`, {}, "Failed to load volunteers");
+export const adminGetPoolStats = (
+  id: string
+): Promise<{ data: { available: number; allocated: number; used: number } }> =>
+  request(`/api/attendance/sessions/${id}/pool`, {}, "Failed to load pool stats");
+
+// ─── Volunteer list management (admin) ───────────────────────────────────────
+export type SessionVolunteer = {
+  userId: string;
+  email: string;
+  name?: string;
+  addedAt: string;
+};
+
+export const adminListSessionVolunteers = (id: string): Promise<{ data: SessionVolunteer[] }> =>
+  request(`/api/attendance/sessions/${id}/volunteers/list`, {}, "Failed to load volunteers");
+
+export const adminAddVolunteer = (id: string, identifier: string) =>
+  request(
+    `/api/attendance/sessions/${id}/volunteers/add`,
+    { method: "POST", ...jsonBody({ identifier }) },
+    "Failed to add volunteer"
+  );
+
+export const adminRemoveVolunteer = (id: string, userId: string) =>
+  request(
+    `/api/attendance/sessions/${id}/volunteers/${encodeURIComponent(userId)}`,
+    { method: "DELETE" },
+    "Failed to remove volunteer"
+  );
+
+// ─── Session report + delete ──────────────────────────────────────────────────
+
+/** Streams the PDF and triggers a browser download. */
+export async function adminDownloadAttendanceReport(id: string, title: string) {
+  const t = await tokenGetter?.();
+  const res = await fetch(`${API_URL}/api/attendance/sessions/${id}/report`, {
+    headers: t ? { Authorization: `Bearer ${t}` } : {},
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { message?: string }).message ?? "Failed to generate report");
+  }
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${title.replace(/\s+/g, "-").toLowerCase()}-attendance.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export const adminDeleteAttendanceSession = (id: string) =>
+  request(
+    `/api/attendance/sessions/${id}`,
+    { method: "DELETE" },
+    "Failed to delete session"
+  );

@@ -4,8 +4,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, CalendarDays, Link2, Sparkles, BarChart3,
-  ChevronRight, Settings, LogOut, Menu, X, FileText, DatabaseZap,
-  MessagesSquare, Building2, GraduationCap
+  ChevronRight, LogOut, Menu, X, FileText, DatabaseZap,
+  MessagesSquare, Building2, QrCode
 } from "lucide-react";
 import { useState } from "react";
 import logo from "@/logo.jpg";
@@ -20,6 +20,7 @@ const nav = [
   { href: "/admin/glance", label: "At a Glance", icon: BarChart3 },
   { href: "/admin/index", label: "Chatbot Index", icon: DatabaseZap },
   { href: "/admin/chats", label: "Chat History", icon: MessagesSquare },
+  { href: "/admin/attendance", label: "Attendance", icon: QrCode },
 ];
 
 export default function AdminSidebar() {
