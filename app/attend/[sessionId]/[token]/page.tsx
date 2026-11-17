@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import AttendanceForm from "./AttendanceForm";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 type TokenVerifyResult =
   | { valid: true; sessionTitle: string; sessionStatus: "open" | "closed" }

@@ -10,7 +10,6 @@ import LinkagesSection from "@/components/sections/LinkagesSection";
 
 import { getLinkages, getEvents, getGlance, getFeatures } from "@/lib/api";
 import { getIcon } from "@/lib/icons";
-// removed: import { rdcFeatures } from "@/data/content";   (no longer static)
 
 export default async function Home() {
   const [linkages, eventsResult, glance, rdcFeatures, iicFeatures] = await Promise.all([

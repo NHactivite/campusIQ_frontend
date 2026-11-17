@@ -146,20 +146,19 @@ export default function VolunteerPage({ params }: { params: Promise<{ id: string
   const attendUrl = token ? `${APP_URL}/attend/${id}/${token}` : null;
 
   return (
-    <div className="min-h-screen bg-[#0f1117] flex flex-col items-center px-4 py-10">
-      <div className="w-full max-w-sm">
+    <div className="flex flex-col items-center px-4">
+      <div className="w-full max-w-sm ">
         {/* Header */}
-        <div className="mb-6 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gold/10 mb-4">
+     
+          <div className="flex items-center justify-center gap-2 h-14 rounded-2xl  bg-[#0f1117]  mb-4">
             <QrCode className="h-7 w-7 text-gold" />
-          </div>
-          <h1 className="text-xl font-bold text-white">{session?.title ?? "Attendance Session"}</h1>
+            <h1 className="text-xl font-bold text-white">{session?.title ?? "Attendance Session"}</h1>
           {session?.description && (
-            <p className="text-sm text-white/40 mt-1">{session.description}</p>
-          )}
+            <p className="text-sm text-white/40 ">{session.description}</p>
+          )}     
 
           {/* Status badge */}
-          <div className="mt-3 flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-medium ${
                 session?.status === "open"
@@ -199,7 +198,7 @@ export default function VolunteerPage({ params }: { params: Promise<{ id: string
         {token && qrDataUrl ? (
           <div className="rounded-2xl bg-white p-4 shadow-2xl mb-5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={qrDataUrl} alt="QR Code" className="w-full rounded-xl" />
+            <img src={qrDataUrl} alt="QR Code" className="w-full h-75 rounded-xl" />
           </div>
         ) : token && !qrDataUrl ? (
           <div className="rounded-2xl bg-[#13161f] border border-white/6 p-8 mb-5 text-center">
