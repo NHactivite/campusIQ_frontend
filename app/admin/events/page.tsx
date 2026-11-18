@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileDown,
+  Check,
 } from "lucide-react";
 import {
   adminGetEvents,
@@ -27,6 +28,8 @@ import {
   adminGetIndexStatus,
   adminResyncItem,
   adminDownloadEventReport,
+  LogoItem,
+  adminGetLogos,
 } from "@/lib/adminApi";
 import Modal from "@/components/admin/Modal";
 import {
@@ -39,6 +42,7 @@ import {
   AdminTable,
 } from "@/components/admin/AdminUI";
 import type { EventItem, Media } from "@/lib/api";
+import Link from "next/link";
 
 const CATEGORIES = [
   "RDC",
@@ -725,11 +729,86 @@ export default function AdminEventsPage() {
 
   const [reporting, setReporting] = useState<string | null>(null);
 
-  const downloadReport = async (e: EventItem) => {
-    setReporting(e._id);
+  const [reportTarget, setReportTarget] = useState<EventItem | null>(null);
+  const [logos, setLogos] = useState<LogoItem[]>([]);
+  const [logosLoading, setLogosLoading] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]); // selection order = order on the PDF
+  const SECTION_OPTIONS: [string, string][] = [
+    ["overview", "Overview"],
+    ["objectives", "Objectives"],
+    ["activities", "Activities"],
+    ["outcomes", "Outcomes"],
+    ["documents", "Document summary"],
+    ["photos", "Photographs"],
+    ["conclusion", "Conclusion"],
+  ];
+  const [sections, setSections] = useState<string[]>(
+    SECTION_OPTIONS.map(([k]) => k),
+  );
+  const [style, setStyle] = useState("official");
+  const [note, setNote] = useState("");
+
+  const toggleSection = (k: string) =>
+    setSections((s) => (s.includes(k) ? s.filter((x) => x !== k) : [...s, k]));
+
+  const openReport = async (e: EventItem) => {
+    setReportTarget(e);
+    setNote("");
     try {
-      await adminDownloadEventReport(e._id, e.slug);
+      const saved = JSON.parse(
+        localStorage.getItem("campusiq:reportOpts") ?? "null",
+      );
+      if (saved?.sections?.length) setSections(saved.sections);
+      if (saved?.style) setStyle(saved.style);
+    } catch {
+      /* ignore */
+    }
+    setLogosLoading(true);
+    try {
+      const list = await adminGetLogos();
+      setLogos(list);
+      let saved: string[] = [];
+      try {
+        saved = JSON.parse(
+          localStorage.getItem("campusiq:reportLogos") ?? "[]",
+        );
+      } catch {
+        /* ignore */
+      }
+      setPicked(saved.filter((id) => list.some((l) => l._id === id))); // remember the last choice
+    } catch {
+      showToast("Could not load logos", "error");
+    } finally {
+      setLogosLoading(false);
+    }
+  };
+
+  const toggleLogo = (id: string) =>
+    setPicked((p) =>
+      p.includes(id)
+        ? p.filter((x) => x !== id)
+        : p.length >= 4
+          ? p
+          : [...p, id],
+    );
+
+  const generateReport = async () => {
+    if (!reportTarget) return;
+    setReporting(reportTarget._id);
+    try {
+      const opts = { logos: picked, sections, style, note };
+      await adminDownloadEventReport(reportTarget._id, reportTarget.slug, opts);
+      try {
+        localStorage.setItem("campusiq:reportLogos", JSON.stringify(picked));
+        localStorage.setItem(
+          "campusiq:reportOpts",
+          JSON.stringify({ sections, style }),
+        );
+      } catch {
+        /* ignore */
+      }
       showToast("Report downloaded", "success");
+      setReportTarget(null);
     } catch (err: any) {
       showToast(err.message ?? "Could not generate the report", "error");
     } finally {
@@ -869,7 +948,7 @@ export default function AdminEventsPage() {
               <td className="px-4 py-4">
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => downloadReport(e)}
+                    onClick={() => openReport(e)}
                     disabled={reporting !== null}
                     className="rounded-lg p-1.5 text-white/40 hover:text-gold hover:bg-gold/10 transition-colors disabled:opacity-40"
                     title="Download PDF report"
@@ -924,6 +1003,164 @@ export default function AdminEventsPage() {
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
         />
+      </Modal>
+      <Modal
+        open={!!reportTarget}
+        onClose={() => !reporting && setReportTarget(null)}
+        title="Generate event report"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-white/60">
+            Choose the logos for the report header (up to 4, shown in the order
+            you tick them).
+          </p>
+
+          {logosLoading ? (
+            <p className="text-sm text-white/40">Loading logos…</p>
+          ) : logos.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-white/10 p-4 text-sm text-white/40">
+              No logos uploaded yet.{" "}
+              <Link href="/admin/logos" className="text-gold underline">
+                Add logos
+              </Link>
+              , or continue without.
+            </p>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {logos.map((l) => {
+                const n = picked.indexOf(l._id);
+                const on = n >= 0;
+                return (
+                  <button
+                    key={l._id}
+                    type="button"
+                    onClick={() => toggleLogo(l._id)}
+                    className={`relative rounded-xl border p-2 text-left transition ${on ? "border-gold bg-gold/10" : "border-white/10 hover:border-white/30"}`}
+                  >
+                    <div className="h-28 w-full overflow-hidden rounded-xl bg-white p-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={l.url}
+                        alt={l.name}
+                        className="block h-full w-full object-contain"
+                      />
+                    </div>
+                    <p className="mt-1.5 truncate text-[11px] text-white/70">
+                      {l.name}
+                    </p>
+                    {on && (
+                      <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-gold text-[11px] font-bold text-black">
+                        {n + 1}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="space-y-3 border-t border-white/[0.06] pt-4">
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/50">
+                Sections
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {SECTION_OPTIONS.map(([k, label]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => toggleSection(k)}
+                    className={`rounded-full border px-3 py-1 text-xs transition ${
+                      sections.includes(k)
+                        ? "border-gold bg-gold/15 text-gold"
+                        : "border-white/10 text-white/40 hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/50">
+                Style
+              </p>
+              <div className="flex gap-2">
+                {[
+                  ["official", "Official"],
+                  ["short", "Short summary"],
+                  ["detailed", "Detailed"],
+                ].map(([k, label]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setStyle(k)}
+                    className={`rounded-xl border px-3 py-1.5 text-xs transition ${
+                      style === k
+                        ? "border-gold bg-gold/15 text-gold"
+                        : "border-white/10 text-white/40 hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
+                Focus note <span className="normal-case text-white/30">(optional)</span>
+              </p>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value.slice(0, 500))}
+                rows={2}
+                placeholder="e.g. Emphasise student participation. Write for the NAAC research-promotion criterion."
+                className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white placeholder-white/30 focus:border-gold/60 focus:outline-none"
+              />
+              <p className="mt-1 text-[11px] text-white/30">
+                Changes emphasis only. The report uses only facts saved in the event and its documents.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
+            <Link
+              href="/admin/logos"
+              className="text-xs text-white/40 hover:text-gold"
+            >
+              Manage logos
+            </Link>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setReportTarget(null)}
+                disabled={!!reporting}
+                className="rounded-xl border border-white/10 px-5 py-2 text-sm text-white/60 hover:text-white disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={generateReport}
+                disabled={!!reporting || logosLoading || sections.length === 0}
+                className="flex items-center gap-2 rounded-xl bg-linear-to-r from-gold to-[#e8b84b] px-5 py-2 text-sm font-semibold text-[#0f1117] disabled:opacity-60"
+              >
+                {reporting && <Loader2 className="h-4 w-4 animate-spin" />}
+                {reporting
+                  ? "Generating…"
+                  : picked.length
+                    ? `Generate with ${picked.length} logo${picked.length > 1 ? "s" : ""}`
+                    : "Generate without logos"}
+              </button>
+            </div>
+          </div>
+          {reporting && (
+            <p className="text-xs text-gold">
+              This takes 10 to 30 seconds. Please keep this window open.
+            </p>
+          )}
+        </div>
       </Modal>
 
       {toast && <Toast message={toast.message} type={toast.type} />}

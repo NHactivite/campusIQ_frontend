@@ -174,11 +174,14 @@ export const adminDeleteFacility = (id: string) =>
   request(`/api/facilities/${id}`, { method: "DELETE" }, "Failed to delete facility");
 
 // report----------------
+export type ReportOptions = { logos: string[]; sections: string[]; style: string; note: string };
 
-export async function adminDownloadEventReport(id: string, slug: string) {
+export async function adminDownloadEventReport(id: string, slug: string, opts: ReportOptions) {
   const token = await tokenGetter?.();
   const res = await fetch(`${API_URL}/api/events/${id}/report`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify(opts),
     cache: "no-store",
   });
   if (!res.ok) {
@@ -192,7 +195,6 @@ export async function adminDownloadEventReport(id: string, slug: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
-
 // // ─── Programmes (admin) ───────────────────────────────────────────────────────────────
 // export type ProgrammeFile = { _id: string; url: string; originalName?: string; format?: string; bytes?: number; };
 // export type ProgrammeItem = {
@@ -290,6 +292,8 @@ export type AttendanceRecord = {
   _id: string;
   sessionId: string;
   token: string;
+  name: string;
+  studentClass: string;
   department: string;
   semester: number;
   rollNumber: string;
@@ -409,3 +413,14 @@ export const adminDeleteAttendanceSession = (id: string) =>
     { method: "DELETE" },
     "Failed to delete session"
   );
+
+
+  // ─── Logos (admin) ───────────────────────────────────────────────────────────
+export type LogoItem = { _id: string; name: string; url: string };
+
+export const adminGetLogos = async (): Promise<LogoItem[]> =>
+  (await request("/api/logos", {}, "Failed to load logos")).data;
+export const adminUploadLogo = async (data: FormData) =>
+  (await request("/api/logos", { method: "POST", body: data }, "Failed to upload logo")).data;
+export const adminDeleteLogo = (id: string) =>
+  request(`/api/logos/${id}`, { method: "DELETE" }, "Failed to delete logo");

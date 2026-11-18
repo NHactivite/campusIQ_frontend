@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, CalendarDays, Link2, Sparkles, BarChart3,
   ChevronRight, LogOut, Menu, X, FileText, DatabaseZap,
-  MessagesSquare, Building2, QrCode
+  MessagesSquare, Building2, QrCode,
+  ImageIcon
 } from "lucide-react";
 import { useState } from "react";
 import logo from "@/logo.jpg";
@@ -21,6 +22,7 @@ const nav = [
   { href: "/admin/index", label: "Chatbot Index", icon: DatabaseZap },
   { href: "/admin/chats", label: "Chat History", icon: MessagesSquare },
   { href: "/admin/attendance", label: "Attendance", icon: QrCode },
+  { href: "/admin/logos", label: "Logos", icon: ImageIcon },
 ];
 
 export default function AdminSidebar() {

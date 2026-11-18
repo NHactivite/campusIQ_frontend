@@ -684,7 +684,7 @@ export default function ChatClient() {
           {/* messages */}
           <div
             ref={listRef}
-            className="min-h-0 flex-1 overflow-y-auto bg-linear-to-b from-[#f1f5f9] to-[#e8eef4] px-3 py-5 sm:px-6"
+            className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-linear-to-b from-[#f1f5f9] to-[#e8eef4] px-3 py-5 sm:px-6"
           >
             <div className="mx-auto max-w-3xl space-y-4">
               {messages.length === 0 && (
@@ -732,10 +732,10 @@ export default function ChatClient() {
                     )}
 
                     <div
-                      className={`flex max-w-[88%] flex-col sm:max-w-[78%] ${mine ? "items-end" : "items-start"}`}
+                      className={`min-w-0 max-w-[88%] flex-col sm:max-w-[78%] flex ${mine ? "items-end" : "items-start"}`}
                     >
                       <div
-                        className={`px-4 py-2.5 text-[14.5px] leading-relaxed shadow-sm ${
+                        className={`min-w-0 max-w-full wrap-break-word px-4 py-2.5 text-[14.5px] leading-relaxed shadow-sm ${
                           mine
                             ? "rounded-2xl rounded-br-md bg-primary text-white"
                             : "rounded-2xl rounded-bl-md border border-slate-200/80 bg-white text-foreground"
@@ -749,7 +749,9 @@ export default function ChatClient() {
                         ) : mine ? (
                           <p className="whitespace-pre-wrap">{m.text}</p>
                         ) : (
-                          <RichText text={m.text} />
+                          <div className="min-w-0 max-w-full overflow-x-hidden wrap-break-word">
+                            <RichText text={m.text} />
+                          </div>
                         )}
 
                         {!mine && m.sources && m.sources.length > 0 && (

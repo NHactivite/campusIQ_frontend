@@ -546,18 +546,20 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/6">
-                  {["Department", "Semester", "Roll Number", "Volunteer", "Submitted At"].map((h) => (
+                  {["Name", "Class", "Department", "Semester", "Roll Number", "Volunteer", "Submitted At"].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-white/30">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {records.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-10 text-white/30">No records found</td></tr>
+                  <tr><td colSpan={7} className="text-center py-10 text-white/30">No records found</td></tr>
                 ) : records.map((r) => {
                   const vol = volunteers.find((v) => v.userId === r.volunteerId);
                   return (
                     <tr key={r._id} className="border-b border-white/4 hover:bg-white/2 transition-colors">
+                      <td className="px-4 py-3 text-white">{r.name}</td>
+                      <td className="px-4 py-3 text-white/70">{r.studentClass}</td>
                       <td className="px-4 py-3 text-white">{r.department}</td>
                       <td className="px-4 py-3 text-white/70">{r.semester}</td>
                       <td className="px-4 py-3 font-mono text-white">{r.rollNumber}</td>
